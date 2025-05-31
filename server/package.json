@@ -1,0 +1,23 @@
+{
+	"name": "RapidInduction",
+	"module": "server/index.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "bun run server/index.ts",
+		"build": "bun build server/index.ts --outdir=dist --target=node",
+		"start": "bun run dist/index.js"
+	},
+	"private": true,
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@hono/zod-validator": "^0.7.0",
+		"hono": "^4.7.9",
+		"zod": "^3.25.42"
+	}
+}
