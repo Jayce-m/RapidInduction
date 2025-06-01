@@ -1,5 +1,5 @@
 {
-	"name": "RapidInduction",
+	"name": "rapid-induction",
 	"module": "server/index.ts",
 	"type": "module",
 	"scripts": {

@@ -1,7 +1,8 @@
 import app from './app';
 
-Bun.serve({
-	fetch: app.fetch, // let hono handle http
+const serve = Bun.serve({
+	port: process.env.PORT || 3000,
+	fetch: app.fetch,
 });
 
-console.log('Server running');
+console.log(`Server running on PORT:${serve.port}`);

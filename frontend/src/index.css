@@ -118,3 +118,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+.party-mode-bg {
+  animation: party-flash 0.5s infinite alternate;
+}
+
+@keyframes party-flash {
+  0% { background-color: #ffadad; }
+  25% { background-color: #ffd6a5; }
+  50% { background-color: #fdffb6; }
+  75% { background-color: #caffbf; }
+  100% { background-color: #9bf6ff; }
+}
