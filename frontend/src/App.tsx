@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import logo from './assets/logo.png';
@@ -12,6 +11,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from './components/ui/select';
+import { Slider } from './components/ui/slider';
+import { generatePDF } from './generatePdf';
+
+let currentAudio: HTMLAudioElement | null = null;
 
 async function getTotalQuestions() {
 	const res = await fetch('/api/generate-exam/total-questions');
@@ -22,8 +25,13 @@ async function getTotalQuestions() {
 	return data;
 }
 
-async function getRandomQuestions(count: number) {
-	const res = await fetch(`/api/generate-exam/random?count=${count}`);
+async function getRandomQuestions(count: number, year?: number) {
+	let url = `/api/generate-exam/randomNEW?count=${count}`;
+	if (year) {
+		url += `&year=${year}`;
+	}
+
+	const res = await fetch(url);
 	if (!res.ok) {
 		throw new Error('Failed to fetch random questions');
 	}
@@ -31,121 +39,14 @@ async function getRandomQuestions(count: number) {
 	return data;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <No explanation i just cbf rn>
-async function generatePDF(questions: any[]) {
-	// Create a new PDF document
-	const pdfDoc = await PDFDocument.create();
-
-	// Add a new page
-	const page = pdfDoc.addPage();
-
-	// Get the font
-	const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-	const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-	// Set some initial parameters
-	const fontSize = 12;
-	const margin = 50;
-	let yOffset = page.getHeight() - margin;
-	const lineHeight = fontSize * 1.5;
-
-	// Add title
-	page.drawText('Generated Exam Questions', {
-		x: margin,
-		y: yOffset,
-		size: 16,
-		font: boldFont,
-		color: rgb(0, 0, 0),
-	});
-
-	yOffset -= lineHeight * 2;
-
-	// Add each question
-	for (let i = 0; i < questions.length; i++) {
-		const question = questions[i];
-
-		// Draw question number
-		page.drawText(`Question ${i + 1}:`, {
-			x: margin,
-			y: yOffset,
-			size: fontSize,
-			font: boldFont,
-			color: rgb(0, 0, 0),
-		});
-		yOffset -= lineHeight;
-
-		// Draw question text (with word wrap)
-		const words = question.question.split(' ');
-		let line = '';
-		const maxWidth = page.getWidth() - margin * 2;
-
-		for (const word of words) {
-			const testLine = `${line + word} `;
-			const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-
-			if (testWidth > maxWidth) {
-				page.drawText(line, {
-					x: margin,
-					y: yOffset,
-					size: fontSize,
-					font: font,
-					color: rgb(0, 0, 0),
-				});
-				line = `${word} `;
-				yOffset -= lineHeight;
-			} else {
-				line = testLine;
-			}
-		}
-
-		// Draw remaining text
-		if (line) {
-			page.drawText(line, {
-				x: margin,
-				y: yOffset,
-				size: fontSize,
-				font: font,
-				color: rgb(0, 0, 0),
-			});
-		}
-
-		yOffset -= lineHeight * 2;
-
-		// Check if we need a new page
-		if (yOffset < margin) {
-			const newPage = pdfDoc.addPage();
-			yOffset = newPage.getHeight() - margin;
-		}
-	}
-
-	// Serialize the PDF to bytes
-	const pdfBytes = await pdfDoc.save();
-
-	// Create a blob and download
-	const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-	const url = window.URL.createObjectURL(blob);
-	const link = document.createElement('a');
-	link.href = url;
-	link.download = 'exam-questions.pdf';
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	window.URL.revokeObjectURL(url);
-}
-
-let currentAudio: HTMLAudioElement | null = null;
-
 function playAudio() {
-	// Stop current audio if it exists
 	if (currentAudio) {
 		currentAudio.pause();
 		currentAudio.currentTime = 0;
 	}
 
-	// Create new audio instance
 	currentAudio = new Audio(song);
-	// Set volume (0.0 to 1.0, where 1.0 is full volume)
-	currentAudio.volume = 0.3; // Adjust this value as needed
+	currentAudio.volume = 0.3;
 	currentAudio.play();
 }
 
@@ -163,11 +64,9 @@ function Navigation({
 }: { partyMode: boolean; setPartyMode: (value: boolean) => void }) {
 	const handlePartyModeToggle = () => {
 		if (!partyMode) {
-			// If party mode is being enabled, play the audio
 			setPartyMode(!partyMode);
 			playAudio();
 		} else {
-			// If party mode is being disabled, stop the audio
 			setPartyMode(!partyMode);
 			stopAudio();
 		}
@@ -177,25 +76,14 @@ function Navigation({
 		<div className="flex justify-center w-full">
 			<nav className="bg-white shadow-lg rounded-b-[16px] px-8 w-fit">
 				<div className="flex items-center h-14">
-					<div className="flex items-center space-x-7">
-						<div className="flex items-center">
-							<img src={logo} alt="Logo" className="w-8 h-8" />
-						</div>
-						<div className="flex items-center space-x-4">
-							<button
-								type="button"
-								className="py-2 px-3 text-gray-500 font-semibold hover:text-blue-500 transition-colors"
-							>
-								Home
-							</button>
-							<Button
-								variant="ghost"
-								className={`py-2 px-3 font-semibold ${partyMode ? 'text-blue-500' : 'text-gray-500'} transition-colors`}
-								onClick={() => handlePartyModeToggle()}
-							>
-								{partyMode ? '🎉 Party Mode' : '🎈 Party Mode'}
-							</Button>
-						</div>
+					<div className="flex items-center space-x-4">
+						<Button
+							variant="ghost"
+							className={`px-0 font-semibold ${partyMode ? 'text-blue-500' : 'text-gray-500'} transition-colors`}
+							onClick={() => handlePartyModeToggle()}
+						>
+							{partyMode ? '🎉 Party Mode' : '🎈 Party Mode'}
+						</Button>
 					</div>
 				</div>
 			</nav>
@@ -224,21 +112,37 @@ function Footer() {
 
 function HomePage() {
 	const [questionCount, setQuestionCount] = useState('5');
-	const [isGenerating, setIsGenerating] = useState(false);
+	const [examYear, setExamYear] = useState([2023]); // Default to 2023
 
-	const handleGenerateExam = async () => {
-		try {
-			setIsGenerating(true);
-			const questions = await getRandomQuestions(
-				Number.parseInt(questionCount),
-			);
+	const generateExamMutation = useMutation({
+		mutationFn: async ({ count, year }: { count: number; year: number }) => {
+			const questions = await getRandomQuestions(count, year);
 			await generatePDF(questions);
-		} catch (error) {
-			console.error('Failed to generate exam:', error);
-			// You might want to show an error message to the user here
-		} finally {
-			setIsGenerating(false);
-		}
+			return questions;
+		},
+		onSuccess: (questions, variables) => {
+			console.log('🎉 Mutation succeeded!');
+			console.log('Questions returned:', questions.length);
+			console.log('Variables used:', variables);
+
+			// todo - add success side effects here:
+			// - Show success toast
+			// - Track analytics
+		},
+		onError: (error, variables) => {
+			console.error('❌ Mutation failed:', error);
+			console.log('Variables used:', variables);
+		},
+		onSettled: () => {
+			console.log('🔄 Mutation settled (either success or error)');
+		},
+	});
+
+	const handleGenerateExam = () => {
+		generateExamMutation.mutate({
+			count: Number(questionCount),
+			year: examYear[0],
+		});
 	};
 
 	return (
@@ -247,14 +151,51 @@ function HomePage() {
 				<div className="space-y-2 text-center">
 					<h1 className="text-3xl font-bold">Generate Exam</h1>
 					<p className="text-gray-500">
-						Select the number of questions and generate your exam.
+						Select the exam year and number of questions to generate your exam.
 					</p>
 				</div>
 
-				<div className="space-y-4">
+				<div className="space-y-6">
+					{/* Year Slider */}
+					<div className="space-y-3">
+						<div className="flex justify-between items-center">
+							<label
+								htmlFor="exam-year-slider"
+								className="text-sm font-medium text-gray-700"
+							>
+								Exam Year
+							</label>
+							<span className="text-sm font-semibold text-blue-600">
+								{examYear[0]}
+							</span>
+						</div>
+						<div className="px-2">
+							<Slider
+								id="exam-year-slider"
+								value={examYear}
+								onValueChange={setExamYear}
+								min={2015}
+								max={2025}
+								step={1}
+								className="w-full"
+							/>
+						</div>
+						<div className="flex justify-between text-xs text-gray-500">
+							<span>2015</span>
+							<span>2025</span>
+						</div>
+					</div>
+
+					{/* Question Count Select */}
 					<div className="space-y-2">
+						<label
+							htmlFor="question-count-select"
+							className="text-sm font-medium text-gray-700"
+						>
+							Number of Questions
+						</label>
 						<Select value={questionCount} onValueChange={setQuestionCount}>
-							<SelectTrigger className="w-full">
+							<SelectTrigger id="question-count-select" className="w-full">
 								<SelectValue placeholder="Select number of questions" />
 							</SelectTrigger>
 							<SelectContent>
@@ -265,14 +206,34 @@ function HomePage() {
 						</Select>
 					</div>
 
+					{/* Generate Button */}
 					<Button
 						className="w-full"
 						size="lg"
 						onClick={handleGenerateExam}
-						disabled={isGenerating}
+						disabled={generateExamMutation.isPending}
 					>
-						{isGenerating ? 'Generating...' : 'Generate Exam'}
+						{generateExamMutation.isPending ? 'Generating...' : 'Generate Exam'}
 					</Button>
+
+					{/* Status Messages */}
+					{generateExamMutation.isError && (
+						<div className="p-3 bg-red-50 border border-red-200 rounded-md">
+							<p className="text-red-600 text-sm text-center">
+								❌ Failed to generate exam. Please try again.
+							</p>
+						</div>
+					)}
+
+					{generateExamMutation.isSuccess && (
+						<div className="p-3 bg-green-50 border border-green-200 rounded-md">
+							<p className="text-green-600 text-sm text-center">
+								✅ PDF generated successfully! (
+								{generateExamMutation.data?.length} questions from {examYear[0]}
+								)
+							</p>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
