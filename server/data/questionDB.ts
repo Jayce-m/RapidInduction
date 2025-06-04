@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const imageSchema = z.object({
+	id: z.string(),
+	url: z.string().url(),
+})
+
 export const questionSchema = z.object({
 	id: z.number().int().positive(),
 	question: z.string(),
@@ -8,6 +13,7 @@ export const questionSchema = z.object({
 	topic: z.string(),
 	examYear: z.number().int().min(2000).max(new Date().getFullYear()), // assuming exam years are between 2000 and current year
 	sitting: z.number().int().min(1).max(2),
+	images: z.array(imageSchema).optional(),
 });
 
 export type Question = z.infer<typeof questionSchema>;
@@ -22,6 +28,12 @@ const questionDB: Question[] = [
 		topic: 'Respiratory Disease',
 		examYear: 2023,
 		sitting: 1,
+		images: [
+			{
+				id: 'img1',
+				url: 'https://example.com/image1.jpg',
+			}
+		]
 	},
 	{
 		id: 2,

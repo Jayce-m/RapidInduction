@@ -4,6 +4,7 @@ import Confetti from 'react-confetti';
 import logo from './assets/logo.png';
 import song from './assets/song.mp3';
 import { Button } from './components/ui/button';
+import { Checkbox } from './components/ui/checkbox';
 import {
 	Select,
 	SelectContent,
@@ -25,10 +26,10 @@ async function getTotalQuestions() {
 	return data;
 }
 
-async function getRandomQuestions(count: number, year?: number) {
+async function getRandomQuestions(count: number, yearRange?: [number, number]) {
 	let url = `/api/generate-exam/randomNEW?count=${count}`;
-	if (year) {
-		url += `&year=${year}`;
+	if (yearRange && yearRange.length === 2) {
+		url += `&yearFrom=${yearRange[0]}&yearTo=${yearRange[1]}`;
 	}
 
 	const res = await fetch(url);
@@ -104,7 +105,9 @@ function Footer() {
 			) : error ? (
 				<span className="text-red-500">Error loading question count</span>
 			) : (
-				`Total Questions in Database: ${data.totalQuestions}`
+				`Made with ❤️ by CJ. v0.4.1 | Total Questions: ${
+					data ? data.totalQuestions : 'N/A'
+				}`
 			)}
 		</footer>
 	);
@@ -112,11 +115,14 @@ function Footer() {
 
 function HomePage() {
 	const [questionCount, setQuestionCount] = useState('5');
-	const [examYear, setExamYear] = useState([2023]); // Default to 2023
+	const [examYearRange, setExamYearRange] = useState([2020, 2025]);
 
 	const generateExamMutation = useMutation({
-		mutationFn: async ({ count, year }: { count: number; year: number }) => {
-			const questions = await getRandomQuestions(count, year);
+		mutationFn: async ({
+			count,
+			yearRange,
+		}: { count: number; yearRange: [number, number] }) => {
+			const questions = await getRandomQuestions(count, yearRange);
 			await generatePDF(questions);
 			return questions;
 		},
@@ -124,10 +130,6 @@ function HomePage() {
 			console.log('🎉 Mutation succeeded!');
 			console.log('Questions returned:', questions.length);
 			console.log('Variables used:', variables);
-
-			// todo - add success side effects here:
-			// - Show success toast
-			// - Track analytics
 		},
 		onError: (error, variables) => {
 			console.error('❌ Mutation failed:', error);
@@ -141,39 +143,56 @@ function HomePage() {
 	const handleGenerateExam = () => {
 		generateExamMutation.mutate({
 			count: Number(questionCount),
-			year: examYear[0],
+			yearRange: [examYearRange[0], examYearRange[1]] as [number, number],
 		});
+	};
+
+	// Helper function to format the year range display
+	const formatYearRange = () => {
+		if (examYearRange[0] === examYearRange[1]) {
+			return examYearRange[0].toString(); // Single year
+		}
+		return `${examYearRange[0]} - ${examYearRange[1]}`; // Range
 	};
 
 	return (
 		<div className="flex flex-col items-center justify-center h-[calc(100vh-4.5rem)]">
 			<div className="w-full max-w-md space-y-6 px-4">
-				<div className="space-y-2 text-center">
-					<h1 className="text-3xl font-bold">Generate Exam</h1>
-					<p className="text-gray-500">
-						Select the exam year and number of questions to generate your exam.
-					</p>
+				<div className="space-y-4 text-center">
+					<div className="flex justify-center">
+						<img src={logo} alt="Logo" className="w-46 h-46" />
+					</div>
+
+					{/* Title and Description */}
+					<div className="space-y-2">
+						<h1 className="text-3xl font-bold">ANZCA Part Two</h1>
+						<h1 className="text-3xl font-bold">Exam Generator</h1>
+						<p className="text-gray-500">
+							Select the exam year range and number of questions to generate
+							your exam.
+						</p>
+					</div>
 				</div>
 
 				<div className="space-y-6">
-					{/* Year Slider */}
+					{/* Year Range Slider */}
 					<div className="space-y-3">
 						<div className="flex justify-between items-center">
 							<label
-								htmlFor="exam-year-slider"
+								htmlFor="exam-year-range-slider"
 								className="text-sm font-medium text-gray-700"
 							>
-								Exam Year
+								Exam Year Range
 							</label>
 							<span className="text-sm font-semibold text-blue-600">
-								{examYear[0]}
+								{formatYearRange()}
 							</span>
 						</div>
 						<div className="px-2">
 							<Slider
-								id="exam-year-slider"
-								value={examYear}
-								onValueChange={setExamYear}
+								id="exam-year-range-slider"
+								value={examYearRange}
+								onValueChange={setExamYearRange}
 								min={2015}
 								max={2025}
 								step={1}
@@ -183,6 +202,16 @@ function HomePage() {
 						<div className="flex justify-between text-xs text-gray-500">
 							<span>2015</span>
 							<span>2025</span>
+						</div>
+					</div>
+					<div className="flex justify-between gap-4">
+						<div className="flex gap-3">
+							<Checkbox id="terms" />
+							<label htmlFor="terms">First Sitting</label>
+						</div>
+						<div className="flex gap-3">
+							<Checkbox id="terms" />
+							<label htmlFor="terms">Second Sitting</label>
 						</div>
 					</div>
 
@@ -213,7 +242,7 @@ function HomePage() {
 						onClick={handleGenerateExam}
 						disabled={generateExamMutation.isPending}
 					>
-						{generateExamMutation.isPending ? 'Generating...' : 'Generate Exam'}
+						{generateExamMutation.isPending ? 'Generating...' : 'Generate'}
 					</Button>
 
 					{/* Status Messages */}
@@ -229,8 +258,8 @@ function HomePage() {
 						<div className="p-3 bg-green-50 border border-green-200 rounded-md">
 							<p className="text-green-600 text-sm text-center">
 								✅ PDF generated successfully! (
-								{generateExamMutation.data?.length} questions from {examYear[0]}
-								)
+								{generateExamMutation.data?.length} questions from{' '}
+								{formatYearRange()})
 							</p>
 						</div>
 					)}
