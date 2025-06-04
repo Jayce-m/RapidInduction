@@ -105,7 +105,7 @@ function Footer() {
 			) : error ? (
 				<span className="text-red-500">Error loading question count</span>
 			) : (
-				`Made with ❤️ by CJ. v0.4.1 | Total Questions: ${
+				`Made with ❤️ by CJ. v0.5.0 | Total Questions: ${
 					data ? data.totalQuestions : 'N/A'
 				}`
 			)}

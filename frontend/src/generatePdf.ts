@@ -1,17 +1,12 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
-// ============================================
-// BETTER APPROACH: Helper Function
-// ============================================
-
-async function generatePDFImproved(questions: any[]) {
+async function generatePDF(questions: any[]) {
     const questionBookletPdf = await PDFDocument.create();
     const fontSize = 12;
     const margin = 50;
     const lineHeight = fontSize * 1.5;
 
     // SET PDF DEFAULTS =========================================================
-
     const font = await questionBookletPdf.embedFont(StandardFonts.Helvetica);
     const boldFont = await questionBookletPdf.embedFont(StandardFonts.HelveticaBold);
 
@@ -159,17 +154,6 @@ SHORT ANSWER QUESTION PAPER
     }
 
     // instructions heading
-    `INSTRUCTIONS
-    ● Record your candidate number on the cover of EACH of the fifteen (15) answer
-    books (right hand top corner).
-    ● There are 15 Questions to answer. Each worth equal marks.
-    ● Write the answer to each question in a separate answer book.
-    ● Writing during reading time is permitted on the question paper only.
-    ● No queries regarding individual questions can be answered.
-    ● All answer books MUST be toggled together and handed in at the conclusion of the
-    examination.
-    ● The question paper may be taken with you.`
-
     const instructionsHeading = "INSTRUCTIONS";
     const instructionsHeadingWidth = font.widthOfTextAtSize(instructionsHeading, 11);
     const instructionsHeadingCenterX = (coverPage.getWidth() - instructionsHeadingWidth) / 2 - 180;
@@ -183,6 +167,7 @@ SHORT ANSWER QUESTION PAPER
         color: rgb(0, 0, 0),
     });
 
+    // instructions text
     const instructionsTextLines = [
         '• Record your candidate number on the cover of EACH of the fifteen (15) answer books (right hand top corner).',
         "• There are 15 Questions to answer. Each worth equal marks.",
@@ -275,9 +260,6 @@ SHORT ANSWER QUESTION PAPER
         yPosition -= lineHeight + 150; // Extra space between questions
     }
 
-
-
-
     // Save and download =========================================================================
     // ===========================================================================================
     const pdfBytes = await questionBookletPdf.save();
@@ -292,4 +274,4 @@ SHORT ANSWER QUESTION PAPER
     window.URL.revokeObjectURL(url);
 }
 
-export { generatePDFImproved as generatePDF };
+export { generatePDF };
