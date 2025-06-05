@@ -4,7 +4,6 @@ import Confetti from 'react-confetti';
 import logo from './assets/logo.png';
 import song from './assets/song.mp3';
 import { Button } from './components/ui/button';
-import { Checkbox } from './components/ui/checkbox';
 import {
 	Select,
 	SelectContent,
@@ -26,10 +25,24 @@ async function getTotalQuestions() {
 	return data;
 }
 
-async function getRandomQuestions(count: number, yearRange?: [number, number]) {
-	let url = `/api/generate-exam/randomNEW?count=${count}`;
+async function getRandomQuestions(
+	count: number,
+	yearRange?: [number, number],
+	sitting?: string,
+) {
+	let url = `/api/generate-exam/random?count=${count}`;
+
 	if (yearRange && yearRange.length === 2) {
 		url += `&yearFrom=${yearRange[0]}&yearTo=${yearRange[1]}`;
+	}
+
+	// Convert sitting selection to boolean parameters
+	if (sitting === 'first') {
+		url += '&firstSitting=true&secondSitting=false';
+	} else if (sitting === 'second') {
+		url += '&firstSitting=false&secondSitting=true';
+	} else if (sitting === 'both') {
+		url += '&firstSitting=true&secondSitting=true';
 	}
 
 	const res = await fetch(url);
@@ -105,7 +118,7 @@ function Footer() {
 			) : error ? (
 				<span className="text-red-500">Error loading question count</span>
 			) : (
-				`Made with ❤️ by CJ. v0.5.0 | Total Questions: ${
+				`Made with ❤️ by CJ. v1.0 | Total Questions: ${
 					data ? data.totalQuestions : 'N/A'
 				}`
 			)}
@@ -114,15 +127,21 @@ function Footer() {
 }
 
 function HomePage() {
-	const [questionCount, setQuestionCount] = useState('5');
-	const [examYearRange, setExamYearRange] = useState([2020, 2025]);
+	const [questionCount, setQuestionCount] = useState('15');
+	const [examYearRange, setExamYearRange] = useState([2015, 2025]);
+	const [selectedSitting, setSelectedSitting] = useState('both');
 
 	const generateExamMutation = useMutation({
 		mutationFn: async ({
 			count,
 			yearRange,
-		}: { count: number; yearRange: [number, number] }) => {
-			const questions = await getRandomQuestions(count, yearRange);
+			sitting,
+		}: {
+			count: number;
+			yearRange: [number, number];
+			sitting: string;
+		}) => {
+			const questions = await getRandomQuestions(count, yearRange, sitting);
 			await generatePDF(questions);
 			return questions;
 		},
@@ -144,6 +163,7 @@ function HomePage() {
 		generateExamMutation.mutate({
 			count: Number(questionCount),
 			yearRange: [examYearRange[0], examYearRange[1]] as [number, number],
+			sitting: selectedSitting,
 		});
 	};
 
@@ -204,15 +224,25 @@ function HomePage() {
 							<span>2025</span>
 						</div>
 					</div>
-					<div className="flex justify-between gap-4">
-						<div className="flex gap-3">
-							<Checkbox id="terms" />
-							<label htmlFor="terms">First Sitting</label>
-						</div>
-						<div className="flex gap-3">
-							<Checkbox id="terms" />
-							<label htmlFor="terms">Second Sitting</label>
-						</div>
+
+					{/* Exam Sitting Select */}
+					<div className="space-y-2">
+						<label
+							htmlFor="sitting-select"
+							className="text-sm font-medium text-gray-700"
+						>
+							Exam Sitting
+						</label>
+						<Select value={selectedSitting} onValueChange={setSelectedSitting}>
+							<SelectTrigger id="sitting-select" className="w-full">
+								<SelectValue placeholder="Select exam sitting" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="first">First Sitting</SelectItem>
+								<SelectItem value="second">Second Sitting</SelectItem>
+								<SelectItem value="both">Both Sittings</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
 
 					{/* Question Count Select */}
@@ -228,16 +258,16 @@ function HomePage() {
 								<SelectValue placeholder="Select number of questions" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="5">5 Questions</SelectItem>
-								<SelectItem value="10">10 Questions</SelectItem>
 								<SelectItem value="15">15 Questions</SelectItem>
+								<SelectItem value="10">10 Questions</SelectItem>
+								<SelectItem value="5">5 Questions</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
 
 					{/* Generate Button */}
 					<Button
-						className="w-full"
+						className="w-full text-white"
 						size="lg"
 						onClick={handleGenerateExam}
 						disabled={generateExamMutation.isPending}

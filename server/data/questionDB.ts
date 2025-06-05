@@ -31,7 +31,11 @@ const questionDB: Question[] = [
 		images: [
 			{
 				id: 'img1',
-				url: 'https://example.com/image1.jpg',
+				url: '/graph.png',
+			},
+			{
+				id: 'img2',
+				url: '/graph2.png',
 			}
 		]
 	},

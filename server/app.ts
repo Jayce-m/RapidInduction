@@ -14,23 +14,15 @@ app.get('/api/generate-exam/total-questions', (c) => {
 	return c.json({ totalQuestions: questionDB.length });
 });
 
-// Get random questions
 app.get('/api/generate-exam/random', (c) => {
-	const count = Number(c.req.query('count')) ?? 5;
-
-	const shuffledArray = shuffleArray(questionDB);
-
-	// Take the first n (count) questions
-	return c.json(shuffledArray.slice(0, count));
-});
-
-app.get('/api/generate-exam/randomNEW', (c) => {
 	const count = Number(c.req.query('count')) || 5;
 
 	// Handle both single year and year range
 	const year = c.req.query('year') ? Number(c.req.query('year')) : null;
 	const yearFrom = c.req.query('yearFrom') ? Number(c.req.query('yearFrom')) : null;
 	const yearTo = c.req.query('yearTo') ? Number(c.req.query('yearTo')) : null;
+	const firstSitting = c.req.query('firstSitting') === 'true';
+	const secondSitting = c.req.query('secondSitting') === 'true';
 
 	console.log('🔍 API Request:', { count, year, yearFrom, yearTo });
 
@@ -49,14 +41,20 @@ app.get('/api/generate-exam/randomNEW', (c) => {
 		console.log(`📅 Filtered to ${filteredQuestions.length} questions from years ${yearFrom}-${yearTo}`);
 	}
 
-	// If no questions found for the range, return error or all questions
+	// Filter by sitting if specified
+	if (firstSitting && secondSitting) {
+		// No filter, both sittings included
+		console.log('🪑 Including both sittings');
+	} else if (firstSitting) {
+		console.log('FIRS SITTING')
+		filteredQuestions = filteredQuestions.filter(q => q.sitting === 1);
+		console.log(`🪑 Filtered to ${filteredQuestions.length} questions from first sitting`);
+	} else if (secondSitting) {
+		filteredQuestions = filteredQuestions.filter(q => q.sitting === 2);
+		console.log(`🪑 Filtered to ${filteredQuestions.length} questions from second sitting`);
+	}
+
 	if (filteredQuestions.length === 0) {
-		// if (year) {
-		// console.log(`⚠️ No questions found for year ${year}, returning all questions`);
-		// } else if (yearFrom && yearTo) {
-		// console.log(`⚠️ No questions found for years ${yearFrom}-${yearTo}, returning all questions`);
-		// }
-		// filteredQuestions = questionDB;
 		return new Error(`No questions found for the specified year(s): ${year || `${yearFrom}-${yearTo}`}`);
 	}
 
