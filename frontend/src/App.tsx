@@ -41,9 +41,12 @@ async function getRandomQuestions(
 		url += '&firstSitting=true&secondSitting=false';
 	} else if (sitting === 'second') {
 		url += '&firstSitting=false&secondSitting=true';
-	} else if (sitting === 'both') {
+	} else {
+		// Default to both sittings if not specified or if 'both' is selected
 		url += '&firstSitting=true&secondSitting=true';
 	}
+
+	console.log('🔗 Requesting URL:', url);
 
 	const res = await fetch(url);
 	if (!res.ok) {
