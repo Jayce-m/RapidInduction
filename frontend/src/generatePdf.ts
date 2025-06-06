@@ -27,7 +27,6 @@ async function createCoverPage(
         color: rgb(0, 0, 0),
     });
 
-    // Cover page image (only for question booklet)
     if (includeImage) {
         try {
             const coverImageUrl = "/cover_page_logo.png";
