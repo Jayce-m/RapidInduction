@@ -4,6 +4,7 @@ import Confetti from 'react-confetti';
 import logo from './assets/logo.png';
 import song from './assets/song.mp3';
 import { Button } from './components/ui/button';
+import { Checkbox } from './components/ui/checkbox';
 import {
 	Select,
 	SelectContent,
@@ -12,6 +13,12 @@ import {
 	SelectValue,
 } from './components/ui/select';
 import { Slider } from './components/ui/slider';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from './components/ui/tooltip';
 import { generatePDF } from './generatePdf';
 
 let currentAudio: HTMLAudioElement | null = null;
@@ -133,6 +140,9 @@ function HomePage() {
 	const [questionCount, setQuestionCount] = useState('15');
 	const [examYearRange, setExamYearRange] = useState([2015, 2025]);
 	const [selectedSitting, setSelectedSitting] = useState('both');
+	const [includeAllQuestions, setIncludeAllQuestions] = useState(false);
+
+	const isSingleYearSelected = examYearRange[1] - examYearRange[0] === 0;
 
 	const generateExamMutation = useMutation({
 		mutationFn: async ({
@@ -215,7 +225,12 @@ function HomePage() {
 							<Slider
 								id="exam-year-range-slider"
 								value={examYearRange}
-								onValueChange={setExamYearRange}
+								onValueChange={(value) => {
+									setExamYearRange(value);
+									if (value[1] - value[0] !== 0) {
+										setIncludeAllQuestions(false);
+									}
+								}}
 								min={2015}
 								max={2025}
 								step={1}
@@ -226,6 +241,36 @@ function HomePage() {
 							<span>2015</span>
 							<span>2025</span>
 						</div>
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="flex items-center space-x-2">
+										<Checkbox
+											id="include-all"
+											checked={includeAllQuestions}
+											onCheckedChange={(checked) =>
+												setIncludeAllQuestions(checked === true)
+											}
+											disabled={!isSingleYearSelected}
+										/>
+										<label
+											htmlFor="include-all"
+											className={`text-sm ${!isSingleYearSelected ? 'text-gray-400' : 'text-gray-700'} cursor-default`}
+										>
+											Order questions as they appeared in the original exam?
+										</label>
+									</div>
+								</TooltipTrigger>
+								{!isSingleYearSelected && (
+									<TooltipContent>
+										<p>
+											This option is only available when a single year is
+											selected
+										</p>
+									</TooltipContent>
+								)}
+							</Tooltip>
+						</TooltipProvider>
 					</div>
 
 					{/* Exam Sitting Select */}
