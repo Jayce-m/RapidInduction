@@ -1,21 +1,14 @@
 import { PDFDocument, type PDFFont, type PDFImage, type RGB, StandardFonts, rgb } from "pdf-lib";
-
-// types/api.ts
-export interface ApiQuestion {
-    id: number;
-    question: string;
-    answer: string;
-    topic: string;
-    examYear: number;
-    sitting: number;
-    images?: Array<{
-        id: string;
-        url: string;
-    }>;
-}
+import type { Question } from "./types"; // Import your Question type
 
 // Helper function to create cover page
-async function createCoverPage(pdf: PDFDocument, title: string, subtitle: string, questionCount: number) {
+async function createCoverPage(
+    pdf: PDFDocument,
+    title: string,
+    subtitle: string,
+    questionCount: number,
+    includeImage = true
+) {
     const font = await pdf.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdf.embedFont(StandardFonts.HelveticaBold);
     const coverPage = pdf.addPage();
@@ -34,27 +27,29 @@ async function createCoverPage(pdf: PDFDocument, title: string, subtitle: string
         color: rgb(0, 0, 0),
     });
 
-    // Cover page image
-    try {
-        const coverImageUrl = "/cover_page_logo.png";
-        const coverImageBytes = await fetch(coverImageUrl).then(res => res.arrayBuffer());
-        const coverImage = await pdf.embedPng(coverImageBytes);
+    // Cover page image (only for question booklet)
+    if (includeImage) {
+        try {
+            const coverImageUrl = "/cover_page_logo.png";
+            const coverImageBytes = await fetch(coverImageUrl).then(res => res.arrayBuffer());
+            const coverImage = await pdf.embedPng(coverImageBytes);
 
-        const imageWidth = 200;
-        const imageHeight = 300;
-        const pageWidth = coverPage.getWidth();
-        const pageHeight = coverPage.getHeight();
-        const centerX = (pageWidth - imageWidth) / 2;
-        const centerY = (pageHeight - imageHeight) / 2 + 190;
+            const imageWidth = 200;
+            const imageHeight = 300;
+            const pageWidth = coverPage.getWidth();
+            const pageHeight = coverPage.getHeight();
+            const centerX = (pageWidth - imageWidth) / 2;
+            const centerY = (pageHeight - imageHeight) / 2 + 190;
 
-        coverPage.drawImage(coverImage, {
-            x: centerX,
-            y: centerY,
-            width: imageWidth,
-            height: imageHeight
-        });
-    } catch (error) {
-        console.warn("Could not load cover image:", error);
+            coverPage.drawImage(coverImage, {
+                x: centerX,
+                y: centerY,
+                width: imageWidth,
+                height: imageHeight
+            });
+        } catch (error) {
+            console.warn("Could not load cover image:", error);
+        }
     }
 
     // Sub titles
@@ -111,17 +106,17 @@ async function createCoverPage(pdf: PDFDocument, title: string, subtitle: string
 }
 
 interface TextOptions {
-    x?: number;           // X position
-    y?: number;           // Y position  
-    size?: number;        // Font size
-    font?: PDFFont;       // Font object
-    color?: RGB;          // Color object from rgb()
-    lineHeight?: number;  // Custom line height
+    x?: number;
+    y?: number;
+    size?: number;
+    font?: PDFFont;
+    color?: RGB;
+    lineHeight?: number;
 }
 
 // Helper function to add instructions page (only for question booklet)
 async function addInstructionsPage(pdf: PDFDocument, font: PDFFont, boldFont: PDFFont) {
-    const coverPage = pdf.getPages()[0]; // Get the cover page to add instructions
+    const coverPage = pdf.getPages()[0];
     const margin = 50;
     const lineHeight = 18;
 
@@ -186,28 +181,25 @@ async function addInstructionsPage(pdf: PDFDocument, font: PDFFont, boldFont: PD
 }
 
 // Main function to generate question booklet
-async function generateQuestionBooklet(questions: ApiQuestion[]) {
+async function generateQuestionBooklet(questions: Question[]) {
     const questionBookletPdf = await PDFDocument.create();
     const fontSize = 12;
     const margin = 50;
     const lineHeight = fontSize * 1.5;
 
-    // Create cover page
     const { font, boldFont } = await createCoverPage(
         questionBookletPdf,
         "ANZCA FINAL EXAMINATION",
         "SHORT ANSWER QUESTION PAPER",
-        questions.length
+        questions.length,
+        true
     );
 
-    // Add instructions
     await addInstructionsPage(questionBookletPdf, font, boldFont);
 
-    // Question pages
     let currentPage = questionBookletPdf.addPage();
     let yPosition = currentPage.getHeight() - margin;
 
-    // Helper functions (same as before)
     function checkPageBreak(spaceNeeded: number = lineHeight) {
         if (yPosition < margin + spaceNeeded) {
             currentPage = questionBookletPdf.addPage();
@@ -227,6 +219,31 @@ async function generateQuestionBooklet(questions: ApiQuestion[]) {
             color: rgb(0, 0, 0),
             ...options,
         });
+        yPosition -= options.lineHeight || lineHeight;
+    }
+
+    function addUnderlinedText(text: string, options: Partial<TextOptions>) {
+        const opts = {
+            x: margin,
+            y: yPosition,
+            size: fontSize,
+            font: font,
+            color: rgb(0, 0, 0),
+            ...options,
+        };
+
+        currentPage.drawText(text, opts);
+
+        const textWidth = opts.font.widthOfTextAtSize(text, opts.size);
+        const underlineY = opts.y - 2;
+
+        currentPage.drawLine({
+            start: { x: opts.x, y: underlineY },
+            end: { x: opts.x + textWidth, y: underlineY },
+            thickness: 1,
+            color: opts.color,
+        });
+
         yPosition -= options.lineHeight || lineHeight;
     }
 
@@ -308,29 +325,47 @@ async function generateQuestionBooklet(questions: ApiQuestion[]) {
         }
     }
 
-    function calculateQuestionSpace(question: ApiQuestion): number {
-        const words = question.question.split(' ');
-        let line = '';
-        let lineCount = 0;
-        const maxWidth = currentPage.getWidth() - margin * 2;
+    function calculateQuestionSpace(question: Question): number {
+        let totalSpace = lineHeight * 2; // Header space
 
-        for (const word of words) {
-            const testLine = `${line + word} `;
-            const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-            if (testWidth > maxWidth && line) {
-                lineCount++;
-                line = `${word} `;
-            } else {
-                line = testLine;
+        // Calculate space for each part
+        for (const part of question.parts) {
+            const words = part.prompt.split(' ');
+            let line = '';
+            let lineCount = 0;
+            const maxWidth = currentPage.getWidth() - margin * 2;
+
+            for (const word of words) {
+                const testLine = `${line + word} `;
+                const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+                if (testWidth > maxWidth && line) {
+                    lineCount++;
+                    line = `${word} `;
+                } else {
+                    line = testLine;
+                }
+            }
+            if (line) lineCount++;
+
+            totalSpace += lineCount * lineHeight;
+
+            // Add space for part images
+            if (part.images && part.images.length > 0) {
+                totalSpace += (250 + lineHeight) * part.images.length;
+            }
+
+            // Add gap between parts if multi-part question
+            if (question.parts.length > 1) {
+                totalSpace += lineHeight / 2;
             }
         }
-        if (line) lineCount++;
 
-        let spaceNeeded = lineHeight + (lineCount * lineHeight) + lineHeight + 50;
+        // Add space for question-level images
         if (question.images && question.images.length > 0) {
-            spaceNeeded += (250 + lineHeight) * question.images.length;
+            totalSpace += (500 + lineHeight) * question.images.length;
         }
-        return spaceNeeded;
+
+        return totalSpace;
     }
 
     function addWrappedText(text: string, options: Partial<TextOptions>) {
@@ -360,37 +395,78 @@ async function generateQuestionBooklet(questions: ApiQuestion[]) {
         const question = questions[i];
         const spaceNeeded = calculateQuestionSpace(question);
 
-        if (yPosition < margin + spaceNeeded) {
-            currentPage = questionBookletPdf.addPage();
-            yPosition = currentPage.getHeight() - margin;
+        // Check if we need spacing before this question (not for first question or after page break)
+        let extraSpacing = 0;
+        if (i > 0 && yPosition < currentPage.getHeight() - margin - lineHeight) {
+            extraSpacing = lineHeight * 9; // Spacing between questions
         }
 
-        addText(`Question ${i + 1}:`, { font: boldFont });
-        addWrappedText(question.question, {});
+        if (yPosition < margin + spaceNeeded + extraSpacing) {
+            currentPage = questionBookletPdf.addPage();
+            yPosition = currentPage.getHeight() - margin;
+        } else if (i > 0) {
+            // Add spacing only if we didn't just create a new page
+            yPosition -= lineHeight * 9;
+        }
 
+        // Question header - use sequential numbering with underline
+        addUnderlinedText(`Question ${i + 1}`, { font: boldFont });
+
+        // Add question-level images if any
         if (question.images && question.images.length > 0) {
             await addQuestionImages(question.images);
         }
 
-        yPosition -= lineHeight + 50;
+        // Process parts
+        if (question.parts.length === 1) {
+            // Single part question - just show the prompt
+            addWrappedText(question.parts[0].prompt, {});
+
+            // Add part-specific images if any
+            if (question.parts[0].images && question.parts[0].images.length > 0) {
+                await addQuestionImages(question.parts[0].images);
+            }
+        } else {
+            // Multiple parts - show as A), B), etc.
+            for (let j = 0; j < question.parts.length; j++) {
+                const part = question.parts[j];
+                const partLabel = String.fromCharCode(65 + j); // A, B, C, etc.
+
+                yPosition -= lineHeight / 2; // Small gap between parts
+
+                // Format prompt with weight if provided
+                let promptText = `${partLabel}) ${part.prompt}`;
+                if (part.weight) {
+                    promptText += ` (${part.weight}%)`;
+                }
+
+                addWrappedText(promptText, {});
+
+                // Add part-specific images if any
+                if (part.images && part.images.length > 0) {
+                    await addQuestionImages(part.images);
+                }
+            }
+        }
     }
 
     return questionBookletPdf;
 }
 
 // Function to generate answer booklet
-async function generateAnswerBooklet(questions: ApiQuestion[]) {
+async function generateAnswerBooklet(questions: Question[]) {
     const answerBookletPdf = await PDFDocument.create();
     const fontSize = 12;
     const margin = 50;
     const lineHeight = fontSize * 1.5;
 
-    // Create cover page
+    // Create cover page without image
     const { font, boldFont } = await createCoverPage(
         answerBookletPdf,
         "ANZCA FINAL EXAMINATION",
         "ANSWER GUIDE",
-        questions.length
+        questions.length,
+        false // No image for answer booklet
     );
 
     // Answer pages
@@ -448,22 +524,103 @@ async function generateAnswerBooklet(questions: ApiQuestion[]) {
         // Check if we need a new page for this question
         checkPageBreak(lineHeight * 8); // Rough estimate for question + answer
 
-        addText(`Question ${i + 1}:`, { font: boldFont });
-        addWrappedText(question.question, { color: rgb(0.3, 0.3, 0.3) }); // Lighter color for question
+        // Question header - use sequential numbering with underline
+        const questionText = `Question ${i + 1}`;
+        const questionOpts = {
+            font: boldFont,
+            size: 14,
+            color: rgb(0, 0, 0),
+        };
 
-        yPosition -= lineHeight / 2; // Small gap
+        currentPage.drawText(questionText, {
+            x: margin,
+            y: yPosition,
+            ...questionOpts,
+        });
 
-        addText("Answer:", { font: boldFont, color: rgb(0, 0.5, 0) }); // Green for answer label
-        addWrappedText(question.answer, { color: rgb(0, 0.3, 0) }); // Dark green for answer
+        // Draw underline
+        const textWidth = questionOpts.font.widthOfTextAtSize(questionText, questionOpts.size);
+        const underlineY = yPosition - 2;
 
-        yPosition -= lineHeight * 2; // Larger gap between questions
+        currentPage.drawLine({
+            start: { x: margin, y: underlineY },
+            end: { x: margin + textWidth, y: underlineY },
+            thickness: 1,
+            color: questionOpts.color,
+        });
+
+        yPosition -= lineHeight * 1.2;
+
+        // Add metadata
+        addText(`Topic: ${question.topic}${question.subtopic ? ` - ${question.subtopic}` : ''}`, {
+            font: font,
+            size: 10,
+            color: rgb(0.5, 0.5, 0.5)
+        });
+
+        if (question.passRate !== undefined) {
+            addText(`Pass Rate: ${question.passRate}%`, {
+                font: font,
+                size: 10,
+                color: rgb(0.5, 0.5, 0.5)
+            });
+        }
+
+        yPosition -= lineHeight / 2;
+
+        // Process parts
+        if (question.parts.length === 1) {
+            // Single part - show prompt and answer
+            addText("Prompt:", { font: boldFont, color: rgb(0.2, 0.2, 0.2) });
+            addWrappedText(question.parts[0].prompt, { color: rgb(0.3, 0.3, 0.3) });
+
+            yPosition -= lineHeight / 2;
+
+            addText("Answer:", { font: boldFont, color: rgb(0, 0.5, 0) });
+            addWrappedText(question.parts[0].answer, { color: rgb(0, 0.3, 0) });
+        } else {
+            // Multiple parts
+            for (let j = 0; j < question.parts.length; j++) {
+                const part = question.parts[j];
+                const partLabel = String.fromCharCode(65 + j); // A, B, C, etc.
+
+                let partHeader = `Part ${partLabel})`;
+                if (part.weight) {
+                    partHeader += ` - ${part.weight}% of marks`;
+                }
+
+                addText(partHeader, {
+                    font: boldFont,
+                    color: rgb(0.2, 0.2, 0.2)
+                });
+
+                addText("Prompt:", { font: font, color: rgb(0.3, 0.3, 0.3), size: 11 });
+                addWrappedText(part.prompt, { color: rgb(0.3, 0.3, 0.3), size: 11 });
+
+                yPosition -= lineHeight / 3;
+
+                addText("Answer:", { font: font, color: rgb(0, 0.5, 0), size: 11 });
+                addWrappedText(part.answer, { color: rgb(0, 0.3, 0), size: 11 });
+
+                yPosition -= lineHeight;
+            }
+        }
+
+        // Add key concepts if available
+        if (question.keyConcepts && question.keyConcepts.length > 0) {
+            yPosition -= lineHeight;
+            addText("Key Concepts:", { font: boldFont, color: rgb(0.4, 0, 0.4) });
+            addText(question.keyConcepts.join(", "), { color: rgb(0.4, 0, 0.4), size: 11 });
+        }
+
+        yPosition -= lineHeight * 3;
     }
 
     return answerBookletPdf;
 }
 
 // Main function that generates both PDFs
-async function generatePDF(questions: ApiQuestion[]) {
+async function generatePDF(questions: Question[]) {
     try {
         const questionBooklet = await generateQuestionBooklet(questions);
         const answerBooklet = await generateAnswerBooklet(questions);
@@ -475,13 +632,6 @@ async function generatePDF(questions: ApiQuestion[]) {
         console.log("Downloading answer booklet...");
         const answerPdfBytes = await answerBooklet.save();
         downloadPDF(answerPdfBytes, 'exam-answers.pdf');
-
-        // Small delay to prevent browser blocking multiple downloads
-        // setTimeout(async () => {
-        // console.log("Downloading answer booklet...");
-        // const answerPdfBytes = await answerBooklet.save();
-        // downloadPDF(answerPdfBytes, 'exam-answers.pdf');
-        // }, 500);
 
     } catch (error) {
         console.error("Error generating PDFs:", error);

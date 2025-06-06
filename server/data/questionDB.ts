@@ -427,6 +427,12 @@ const questionDB: Question[] = [
 					"Identify the axes A and B (with units), and the points labelled C through H on the following spirometry loop.",
 				answer: "Axes: A = Flow (L/s), B = Volume (L). Points C–H labelled per standard loop.",
 				weight: 50,
+				images: [
+					{
+						id: "spirometry-loop",
+						url: "/Q15_image1.png",
+					},
+				],
 			},
 			{
 				prompt:

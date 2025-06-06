@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { serveStatic } from 'hono/bun';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import questionDB from './data/questionDB';
+import { questionDB } from './data/questionDB'; // Changed to named import
 
 const app = new Hono();
 
@@ -75,7 +75,7 @@ app.get('/api/generate-exam/random', (c) => {
     }
 
     if (filteredQuestions.length === 0) {
-        return new Error(`No questions found for the specified year(s): ${year || `${yearFrom}-${yearTo}`}`);
+        return c.json({ error: 'No questions found for the specified criteria' }, 404);
     }
 
     // Shuffle the filtered questions
@@ -103,12 +103,14 @@ app.get('/api/generate-exam/random', (c) => {
 });
 
 // Fisher-Yates shuffle algorithm
-function shuffleArray(questionArray: typeof questionDB) {
+function shuffleArray<T>(questionArray: T[]): T[] {
     const shuffled = [...questionArray];
 
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const temp = shuffled[i] as T;
+        shuffled[i] = shuffled[j] as T;
+        shuffled[j] = temp;
     }
     return shuffled;
 }
