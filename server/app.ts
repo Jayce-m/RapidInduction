@@ -14,6 +14,7 @@ app.get('/api/generate-exam/total-questions', (c) => {
     return c.json({ totalQuestions: questionDB.length });
 });
 
+// Update your API endpoint
 app.get('/api/generate-exam/random', (c) => {
     const count = Number(c.req.query('count')) || 5;
 
@@ -23,19 +24,22 @@ app.get('/api/generate-exam/random', (c) => {
     const yearTo = c.req.query('yearTo') ? Number(c.req.query('yearTo')) : null;
     const firstSitting = c.req.query('firstSitting') === 'true';
     const secondSitting = c.req.query('secondSitting') === 'true';
+    const preserveOrder = c.req.query('preserveOrder') === 'true';
 
-    console.log('🎯 Debug - Sitting Parameters:', {
+    console.log('🎯 Debug - Parameters:', {
         firstSitting,
         secondSitting,
+        preserveOrder,
         firstSittingRawValue: c.req.query('firstSitting'),
-        secondSittingRawValue: c.req.query('secondSitting')
+        secondSittingRawValue: c.req.query('secondSitting'),
+        preserveOrderRawValue: c.req.query('preserveOrder')
     });
 
-    console.log('🔍 API Request:', { count, year, yearFrom, yearTo, firstSitting, secondSitting });
+    console.log('🔍 API Request:', { count, year, yearFrom, yearTo, firstSitting, secondSitting, preserveOrder });
 
     let filteredQuestions = questionDB;
 
-    // Filter by single year (backward compatibility)
+    // todo - remove this at some point
     if (year) {
         filteredQuestions = questionDB.filter(q => q.examYear === year);
         console.log(`📅 Filtered to ${filteredQuestions.length} questions from year ${year}`);
@@ -78,11 +82,29 @@ app.get('/api/generate-exam/random', (c) => {
         return c.json({ error: 'No questions found for the specified criteria' }, 404);
     }
 
-    // Shuffle the filtered questions
-    const shuffledArray = shuffleArray(filteredQuestions);
+    let result: typeof filteredQuestions;
 
-    // Take the first n (count) questions
-    const result = shuffledArray.slice(0, count);
+    // If preserveOrder is true AND it's a single year, sort by order property
+    if (preserveOrder && yearFrom === yearTo) {
+        console.log('📋 Preserving original exam order');
+        // Sort by order property
+        const sortedQuestions = [...filteredQuestions].sort((a, b) => a.order - b.order);
+
+        // Take the first n questions (they're already in order)
+        result = sortedQuestions.slice(0, count);
+
+        console.log('📋 Questions in original exam order:',
+            result.map(q => ({ order: q.order, id: q.id }))
+        );
+    } else {
+        // Shuffle the filtered questions
+        const shuffledArray = shuffleArray(filteredQuestions);
+
+        // Take the first n (count) questions
+        result = shuffledArray.slice(0, count);
+
+        console.log('🔀 Questions shuffled randomly');
+    }
 
     // Log year and sitting distribution of returned questions
     const yearDistribution = result.reduce((acc, q) => {

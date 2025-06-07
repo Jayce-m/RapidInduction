@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
+import { Bounce, ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import logo from './assets/logo.png';
 import song from './assets/song.mp3';
 import { Button } from './components/ui/button';
@@ -36,6 +38,7 @@ async function getRandomQuestions(
 	count: number,
 	yearRange?: [number, number],
 	sitting?: string,
+	preserveOrder?: boolean,
 ) {
 	let url = `/api/generate-exam/random?count=${count}`;
 
@@ -51,6 +54,10 @@ async function getRandomQuestions(
 	} else {
 		// Default to both sittings if not specified or if 'both' is selected
 		url += '&firstSitting=true&secondSitting=true';
+	}
+
+	if (preserveOrder) {
+		url += '&preserveOrder=true';
 	}
 
 	console.log('🔗 Requesting URL:', url);
@@ -97,13 +104,13 @@ function Navigation({
 	};
 
 	return (
-		<div className="flex justify-center w-full">
-			<nav className="bg-white shadow-lg rounded-b-[16px] px-8 w-fit">
-				<div className="flex items-center h-14">
+		<div className="flex justify-center w-full px-4">
+			<nav className="bg-white shadow-lg rounded-b-[16px] px-4 sm:px-8 w-fit">
+				<div className="flex items-center h-12 sm:h-14">
 					<div className="flex items-center space-x-4">
 						<Button
 							variant="ghost"
-							className={`px-0 font-semibold ${partyMode ? 'text-blue-500' : 'text-gray-500'} transition-colors`}
+							className={`px-0 text-sm sm:text-base font-semibold ${partyMode ? 'text-blue-500' : 'text-gray-500'} transition-colors`}
 							onClick={() => handlePartyModeToggle()}
 						>
 							{partyMode ? '🎉 Party Mode' : '🎈 Party Mode'}
@@ -122,7 +129,7 @@ function Footer() {
 	});
 
 	return (
-		<footer className="fixed bottom-0 w-full pb-4 text-center">
+		<footer className="fixed bottom-0 w-full pb-4 px-4 text-center text-xs sm:text-sm">
 			{isPending ? (
 				'Loading question count...'
 			) : error ? (
@@ -135,6 +142,30 @@ function Footer() {
 		</footer>
 	);
 }
+
+// Custom toast styles to match your existing design
+const toastStyles = {
+	success: {
+		style: {
+			background: '#f0fdf4',
+			color: '#16a34a',
+			border: '1px solid #bbf7d0',
+		},
+		progressStyle: {
+			background: '#16a34a',
+		},
+	},
+	error: {
+		style: {
+			background: '#fef2f2',
+			color: '#dc2626',
+			border: '1px solid #fecaca',
+		},
+		progressStyle: {
+			background: '#dc2626',
+		},
+	},
+};
 
 function HomePage() {
 	const [questionCount, setQuestionCount] = useState('15');
@@ -149,26 +180,70 @@ function HomePage() {
 			count,
 			yearRange,
 			sitting,
+			preserveOrder,
 		}: {
 			count: number;
 			yearRange: [number, number];
 			sitting: string;
+			preserveOrder: boolean;
 		}) => {
-			const questions = await getRandomQuestions(count, yearRange, sitting);
+			const questions = await getRandomQuestions(
+				count,
+				yearRange,
+				sitting,
+				preserveOrder,
+			);
 			await generatePDF(questions);
 			return questions;
+		},
+		onMutate: () => {
+			// Show loading toast
+			toast.promise(
+				new Promise((resolve, reject) => {
+					// Store resolve/reject for later use
+					(window as any).__toastPromise = { resolve, reject };
+				}),
+				{
+					pending: 'Generating PDF...',
+					success: {
+						render({ data }: any) {
+							return `PDF generated! (${data} questions)`;
+						},
+					},
+					error: 'Failed to generate PDF',
+				},
+				{
+					position: 'bottom-center',
+					autoClose: 2000,
+					hideProgressBar: false,
+					closeOnClick: false,
+					pauseOnHover: true,
+					draggable: false,
+					theme: 'light',
+				},
+			);
 		},
 		onSuccess: (questions, variables) => {
 			console.log('🎉 Mutation succeeded!');
 			console.log('Questions returned:', questions.length);
 			console.log('Variables used:', variables);
+			// Resolve the toast promise
+			if ((window as any).__toastPromise) {
+				(window as any).__toastPromise.resolve(questions.length);
+			}
 		},
 		onError: (error, variables) => {
 			console.error('❌ Mutation failed:', error);
 			console.log('Variables used:', variables);
+			// Reject the toast promise
+			if ((window as any).__toastPromise) {
+				(window as any).__toastPromise.reject(error);
+			}
 		},
 		onSettled: () => {
 			console.log('🔄 Mutation settled (either success or error)');
+			// Clean up
+			delete (window as any).__toastPromise;
 		},
 	});
 
@@ -177,6 +252,7 @@ function HomePage() {
 			count: Number(questionCount),
 			yearRange: [examYearRange[0], examYearRange[1]] as [number, number],
 			sitting: selectedSitting,
+			preserveOrder: includeAllQuestions && isSingleYearSelected,
 		});
 	};
 
@@ -189,25 +265,25 @@ function HomePage() {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center h-[calc(100vh-4.5rem)]">
-			<div className="w-full max-w-md space-y-6 px-4">
-				<div className="space-y-4 text-center">
+		<div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] sm:min-h-[calc(100vh-4.5rem)] py-8">
+			<div className="w-full max-w-md space-y-4 sm:space-y-6 px-4">
+				<div className="space-y-3 sm:space-y-4 text-center">
 					<div className="flex justify-center">
-						<img src={logo} alt="Logo" className="w-46 h-46" />
+						<img src={logo} alt="Logo" className="w-32 h-32 sm:w-46 sm:h-46" />
 					</div>
 
 					{/* Title and Description */}
 					<div className="space-y-2">
-						<h1 className="text-3xl font-bold">ANZCA Part Two</h1>
-						<h1 className="text-3xl font-bold">Exam Generator</h1>
-						<p className="text-gray-500">
+						<h1 className="text-2xl sm:text-3xl font-bold">ANZCA Part Two</h1>
+						<h1 className="text-2xl sm:text-3xl font-bold">Exam Generator</h1>
+						<p className="text-sm sm:text-base text-gray-500 px-2">
 							Select the exam year range and number of questions to generate
 							your exam.
 						</p>
 					</div>
 				</div>
 
-				<div className="space-y-6">
+				<div className="space-y-4 sm:space-y-6">
 					{/* Year Range Slider */}
 					<div className="space-y-3">
 						<div className="flex justify-between items-center">
@@ -244,7 +320,7 @@ function HomePage() {
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<div className="flex items-center space-x-2">
+									<div className="flex items-start sm:items-center space-x-2">
 										<Checkbox
 											id="include-all"
 											checked={includeAllQuestions}
@@ -252,10 +328,11 @@ function HomePage() {
 												setIncludeAllQuestions(checked === true)
 											}
 											disabled={!isSingleYearSelected}
+											className="mt-0.5 sm:mt-0"
 										/>
 										<label
 											htmlFor="include-all"
-											className={`text-sm ${!isSingleYearSelected ? 'text-gray-400' : 'text-gray-700'} cursor-default`}
+											className={`text-xs sm:text-sm ${!isSingleYearSelected ? 'text-gray-400' : 'text-gray-700'} cursor-default text-left`}
 										>
 											Order questions as they appeared in the original exam?
 										</label>
@@ -263,7 +340,7 @@ function HomePage() {
 								</TooltipTrigger>
 								{!isSingleYearSelected && (
 									<TooltipContent>
-										<p>
+										<p className="text-xs sm:text-sm">
 											This option is only available when a single year is
 											selected
 										</p>
@@ -322,25 +399,6 @@ function HomePage() {
 					>
 						{generateExamMutation.isPending ? 'Generating...' : 'Generate'}
 					</Button>
-
-					{/* Status Messages */}
-					{generateExamMutation.isError && (
-						<div className="p-3 bg-red-50 border border-red-200 rounded-md">
-							<p className="text-red-600 text-sm text-center">
-								❌ Failed to generate exam. Please try again.
-							</p>
-						</div>
-					)}
-
-					{generateExamMutation.isSuccess && (
-						<div className="p-3 bg-green-50 border border-green-200 rounded-md">
-							<p className="text-green-600 text-sm text-center">
-								✅ PDF generated successfully! (
-								{generateExamMutation.data?.length} questions from{' '}
-								{formatYearRange()})
-							</p>
-						</div>
-					)}
 				</div>
 			</div>
 		</div>
@@ -377,7 +435,7 @@ function App() {
 	return (
 		<div className="fixed inset-0 overflow-hidden">
 			<div
-				className={`w-full h-full ${partyMode ? 'party-mode-bg' : 'bg-gray-50'}`}
+				className={`w-full h-full overflow-y-auto ${partyMode ? 'party-mode-bg' : 'bg-gray-50'}`}
 			>
 				{partyMode && (
 					<Confetti width={windowSize.width} height={windowSize.height} />
@@ -385,6 +443,20 @@ function App() {
 				<Navigation partyMode={partyMode} setPartyMode={setPartyMode} />
 				<HomePage />
 				<Footer />
+				<ToastContainer
+					position="bottom-center"
+					autoClose={2000}
+					hideProgressBar={false}
+					newestOnTop={false}
+					closeOnClick={false}
+					rtl={false}
+					pauseOnFocusLoss={false}
+					draggable={false}
+					pauseOnHover
+					theme="light"
+					transition={Bounce}
+					toastStyle={{ fontSize: '14px' }}
+				/>
 			</div>
 		</div>
 	);
