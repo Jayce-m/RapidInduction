@@ -1,70 +1,19 @@
-import { z } from 'zod';
-
-const imageSchema = z.object({
-	id: z.string(),
-	url: z.string().url(),
-})
-
-export const questionPartSchema = z.object({
-	prompt: z.string(),
-	answer: z.string(),
-	/** Optional percentage of the total marks for this part. */
-	weight: z.number().min(0).max(100).optional(),
-	/** Images that relate **only** to this sub‑prompt. */
-	images: z.array(imageSchema).optional(),
-});
-
-export const questionSchema = z.object({
-	id: z.number().int().positive(),
-	/** Running order as it appeared in the exam paper. */
-	order: z.number().int().positive(),
-	examinersNotes: z.string().optional(), // exmainers notes as it appears in the report
-	topic: z.array(z.string()),
-	subtopic: z.array(z.string()),
-	examYear: z.number().int().min(2000).max(new Date().getFullYear()),
-	sitting: z.number().int().min(1).max(2),
-	questionType: z.enum(["MCQ", "SAQ", "Viva"]),
-	instructionWord: z.array(z.enum([
-		"Discuss",
-		"Describe",
-		"Define",
-		"Explain",
-		"Outline",
-		"Compare",
-		"Contrast",
-		"Evaluate",
-		"Illustrate",
-		"Interpret",
-		"Justify",
-		"List",
-		"Relate",
-	])),
-	passRate: z.number().min(0).max(100).optional(),
-	aiGenerated: z.boolean().optional(),
-	coreConcepts: z.array(z.string()).optional(),
-	images: z.array(imageSchema).optional(),
-	parts: z.array(questionPartSchema),
-});
-
-export type QuestionPart = z.infer<typeof questionPartSchema>;
-export type Question = z.infer<typeof questionSchema>;
-
-const questionDB: Question[] = [
+[
 	{
 		"id": 1,
 		"order": 1,
-		"topic": ["equipment"],
-		"subtopic": ["ElectroCardioGram (ECG)"],
+		"topic": ["Cardiovascular"],
+		"subtopic": ["Coronary Anatomy and ECG"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
-		"instructionWord": ["Describe", "List"],
+		"instructionWord": ["Describe"],
 		"passRate": 48.9,
 		"images": [],
 		"parts": [
 			{
 				"prompt": "List the branches of the coronary arteries and the myocardial territories and structures they supply. Outline the electrocardiograph (ECG) leads that correspond to the blood supply. Describe the ECG changes in a non-ST-elevation myocardial infarct (NSTEMI).",
-				"answer": "Branches include LAD, LCx, RCA. LAD supplies anterior wall; LCx lateral; RCA inferior wall. ECG leads: anterior (V1\u2013V4), lateral (I, aVL, V5\u2013V6), inferior (II, III, aVF). NSTEMI changes include ST depression, T wave inversion."
+				"answer": "Branches include LAD, LCx, RCA. LAD supplies anterior wall; LCx lateral; RCA inferior wall. ECG leads: anterior (V1–V4), lateral (I, aVL, V5–V6), inferior (II, III, aVF). NSTEMI changes include ST depression, T wave inversion."
 			}
 		],
 		"coreConcepts": [
@@ -76,8 +25,8 @@ const questionDB: Question[] = [
 	{
 		"id": 2,
 		"order": 2,
-		"topic": ["anaesthetic fundamentals"],
-		"subtopic": ["airway management strategies - manual in-line stabilisation"],
+		"topic": ["professionalism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -99,8 +48,8 @@ const questionDB: Question[] = [
 	{
 		"id": 3,
 		"order": 3,
-		"topic": ["anaesthetic fundamentals"],
-		"subtopic": ["critical airway obstruction"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -122,8 +71,8 @@ const questionDB: Question[] = [
 	{
 		"id": 4,
 		"order": 4,
-		"topic": ["surgical specialties"],
-		"subtopic": ["anaesthesia for pituitary tumour surgery"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -145,8 +94,8 @@ const questionDB: Question[] = [
 	{
 		"id": 5,
 		"order": 5,
-		"topic": ["anaesthetic fundamentals"],
-		"subtopic": ["airway management strategies - anticipated difficult airway"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -156,7 +105,7 @@ const questionDB: Question[] = [
 		"parts": [
 			{
 				"prompt": "An 82-year-old patient is booked for excision of a floor of mouth squamous cell carcinoma and neck dissection, with radial forearm free flap reconstruction. Discuss the issues relevant to the intraoperative anaesthetic management for this procedure.",
-				"answer": "Key issues: shared airway\u2014secure nasal or reinforced oral tube away from surgical field, anticipate tracheostomy; availability of difficult airway equipment. Long operative time with potential major blood loss\u2014large-bore IV access, arterial line, crossmatch, cell salvage, temperature management. Fluid and vasopressor strategy to optimise free-flap perfusion (maintain MAP >65\u201370 mmHg, avoid vasoconstrictors near anastomosis). Communication with surgeons around heparinisation and ischaemia times. Neuromonitoring considerations for cranial nerves. Postoperative ICU planning for airway oedema and flap monitoring."
+				"answer": "Key issues: shared airway—secure nasal or reinforced oral tube away from surgical field, anticipate tracheostomy; availability of difficult airway equipment. Long operative time with potential major blood loss—large-bore IV access, arterial line, crossmatch, cell salvage, temperature management. Fluid and vasopressor strategy to optimise free-flap perfusion (maintain MAP >65–70 mmHg, avoid vasoconstrictors near anastomosis). Communication with surgeons around heparinisation and ischaemia times. Neuromonitoring considerations for cranial nerves. Postoperative ICU planning for airway oedema and flap monitoring."
 			}
 		],
 		"coreConcepts": [
@@ -170,8 +119,8 @@ const questionDB: Question[] = [
 	{
 		"id": 6,
 		"order": 6,
-		"topic": ["anaesthetic fundamentals"],
-		"subtopic": ["central neuraxial blockade"],
+		"topic": ["professionalism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -193,8 +142,8 @@ const questionDB: Question[] = [
 	{
 		"id": 7,
 		"order": 7,
-		"topic": ["anaesthetic fundamentals"],
-		"subtopic": ["caudal epidural"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -204,7 +153,7 @@ const questionDB: Question[] = [
 		"parts": [
 			{
 				"prompt": "Describe your technique to provide caudal epidural analgesia for an infant weighing 10 kg undergoing hypospadias surgery.",
-				"answer": "Identify sacral hiatus, position in lateral decubitus, use strict asepsis and monitoring. Insert needle through sacrococcygeal ligament at 45\u00b0, confirm with loss of resistance or ultrasound. Inject local anaesthetic slowly with aspiration checks. Monitor for complications."
+				"answer": "Identify sacral hiatus, position in lateral decubitus, use strict asepsis and monitoring. Insert needle through sacrococcygeal ligament at 45°, confirm with loss of resistance or ultrasound. Inject local anaesthetic slowly with aspiration checks. Monitor for complications."
 			}
 		],
 		"coreConcepts": ["caudal block", "pediatric regional", "sacral anatomy"]
@@ -212,8 +161,8 @@ const questionDB: Question[] = [
 	{
 		"id": 8,
 		"order": 8,
-		"topic": ["perioperative care"],
-		"subtopic": ["phaeo-chromocytoma "],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -241,8 +190,8 @@ const questionDB: Question[] = [
 	{
 		"id": 9,
 		"order": 9,
-		"topic": ["anaesthetic fundamentals"],
-		"subtopic": ["postoperative cognitive decline"],
+		"topic": ["professionalism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -264,8 +213,8 @@ const questionDB: Question[] = [
 	{
 		"id": 10,
 		"order": 10,
-		"topic": ["specialty patient groups"],
-		"subtopic": ["labour analgesia"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -275,7 +224,7 @@ const questionDB: Question[] = [
 		"parts": [
 			{
 				"prompt": "Describe the innervation relevant to the stages of labour.",
-				"answer": "Stage 1: visceral pain via T10\u2013L1 (uterine contractions). Stage 2: somatic pain via S2\u2013S4 (perineum).",
+				"answer": "Stage 1: visceral pain via T10–L1 (uterine contractions). Stage 2: somatic pain via S2–S4 (perineum).",
 				"weight": 30
 			},
 			{
@@ -294,7 +243,7 @@ const questionDB: Question[] = [
 		"id": 11,
 		"order": 11,
 		"topic": ["professional-ism"],
-		"subtopic": ["ethical issues in anaesthesia"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -316,12 +265,12 @@ const questionDB: Question[] = [
 	{
 		"id": 12,
 		"order": 12,
-		"topic": ["drugs"],
-		"subtopic": ["paracetamol"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
-		"instructionWord": ["Describe", "Outline"],
+		"instructionWord": ["Describe"],
 		"passRate": 56.1,
 		"images": [],
 		"parts": [
@@ -346,7 +295,7 @@ const questionDB: Question[] = [
 		"id": 13,
 		"order": 13,
 		"topic": ["professional-ism"],
-		"subtopic": ["clinical trial design"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -368,8 +317,8 @@ const questionDB: Question[] = [
 	{
 		"id": 14,
 		"order": 14,
-		"topic": ["perioperative care"],
-		"subtopic": ["care pathways"],
+		"topic": ["professional-ism"],
+		"subtopic": ["airway and c-spine protection"],
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
@@ -398,7 +347,7 @@ const questionDB: Question[] = [
 		"parts": [
 			{
 				"prompt": "Identify the axes A and B (with units), and the points labelled C through H on the following spirometry loop.",
-				"answer": "Axes: A = Flow (L/s), B = Volume (L). Points C\u2013H labelled per standard loop.",
+				"answer": "Axes: A = Flow (L/s), B = Volume (L). Points C–H labelled per standard loop.",
 				"weight": 50,
 				"images": [
 					{
@@ -418,8 +367,5 @@ const questionDB: Question[] = [
 			"obstructive vs restrictive",
 			"flow-volume loops"
 		]
-	},
-];
-
-
-export { questionDB };
+	}
+]

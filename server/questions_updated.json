@@ -1,55 +1,4 @@
-import { z } from 'zod';
-
-const imageSchema = z.object({
-	id: z.string(),
-	url: z.string().url(),
-})
-
-export const questionPartSchema = z.object({
-	prompt: z.string(),
-	answer: z.string(),
-	/** Optional percentage of the total marks for this part. */
-	weight: z.number().min(0).max(100).optional(),
-	/** Images that relate **only** to this sub‑prompt. */
-	images: z.array(imageSchema).optional(),
-});
-
-export const questionSchema = z.object({
-	id: z.number().int().positive(),
-	/** Running order as it appeared in the exam paper. */
-	order: z.number().int().positive(),
-	examinersNotes: z.string().optional(), // exmainers notes as it appears in the report
-	topic: z.array(z.string()),
-	subtopic: z.array(z.string()),
-	examYear: z.number().int().min(2000).max(new Date().getFullYear()),
-	sitting: z.number().int().min(1).max(2),
-	questionType: z.enum(["MCQ", "SAQ", "Viva"]),
-	instructionWord: z.array(z.enum([
-		"Discuss",
-		"Describe",
-		"Define",
-		"Explain",
-		"Outline",
-		"Compare",
-		"Contrast",
-		"Evaluate",
-		"Illustrate",
-		"Interpret",
-		"Justify",
-		"List",
-		"Relate",
-	])),
-	passRate: z.number().min(0).max(100).optional(),
-	aiGenerated: z.boolean().optional(),
-	coreConcepts: z.array(z.string()).optional(),
-	images: z.array(imageSchema).optional(),
-	parts: z.array(questionPartSchema),
-});
-
-export type QuestionPart = z.infer<typeof questionPartSchema>;
-export type Question = z.infer<typeof questionSchema>;
-
-const questionDB: Question[] = [
+[
 	{
 		"id": 1,
 		"order": 1,
@@ -321,7 +270,7 @@ const questionDB: Question[] = [
 		"examYear": 2023,
 		"sitting": 1,
 		"questionType": "SAQ",
-		"instructionWord": ["Describe", "Outline"],
+		"instructionWord": ["Describe"],
 		"passRate": 56.1,
 		"images": [],
 		"parts": [
@@ -418,8 +367,5 @@ const questionDB: Question[] = [
 			"obstructive vs restrictive",
 			"flow-volume loops"
 		]
-	},
-];
-
-
-export { questionDB };
+	}
+]

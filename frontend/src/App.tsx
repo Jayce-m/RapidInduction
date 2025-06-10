@@ -143,30 +143,6 @@ function Footer() {
 	);
 }
 
-// Custom toast styles to match your existing design
-const toastStyles = {
-	success: {
-		style: {
-			background: '#f0fdf4',
-			color: '#16a34a',
-			border: '1px solid #bbf7d0',
-		},
-		progressStyle: {
-			background: '#16a34a',
-		},
-	},
-	error: {
-		style: {
-			background: '#fef2f2',
-			color: '#dc2626',
-			border: '1px solid #fecaca',
-		},
-		progressStyle: {
-			background: '#dc2626',
-		},
-	},
-};
-
 function HomePage() {
 	const [questionCount, setQuestionCount] = useState('15');
 	const [examYearRange, setExamYearRange] = useState([2015, 2025]);
@@ -196,54 +172,23 @@ function HomePage() {
 			await generatePDF(questions);
 			return questions;
 		},
-		onMutate: () => {
-			// Show loading toast
-			toast.promise(
-				new Promise((resolve, reject) => {
-					// Store resolve/reject for later use
-					(window as any).__toastPromise = { resolve, reject };
-				}),
-				{
-					pending: 'Generating PDF...',
-					success: {
-						render({ data }: any) {
-							return `PDF generated! (${data} questions)`;
-						},
-					},
-					error: 'Failed to generate PDF',
+		onSuccess: () => {
+			toast.success('PDF generated, Good Luck!', {
+				style: {
+					background: '#f0fdf4',
+					color: '#16a34a',
+					border: '1px solid #bbf7d0',
 				},
-				{
-					position: 'bottom-center',
-					autoClose: 2000,
-					hideProgressBar: false,
-					closeOnClick: false,
-					pauseOnHover: true,
-					draggable: false,
-					theme: 'light',
+			});
+		},
+		onError: () => {
+			toast.error('Failed to generate PDF', {
+				style: {
+					background: '#fef2f2',
+					color: '#dc2626',
+					border: '1px solid #fecaca',
 				},
-			);
-		},
-		onSuccess: (questions, variables) => {
-			console.log('🎉 Mutation succeeded!');
-			console.log('Questions returned:', questions.length);
-			console.log('Variables used:', variables);
-			// Resolve the toast promise
-			if ((window as any).__toastPromise) {
-				(window as any).__toastPromise.resolve(questions.length);
-			}
-		},
-		onError: (error, variables) => {
-			console.error('❌ Mutation failed:', error);
-			console.log('Variables used:', variables);
-			// Reject the toast promise
-			if ((window as any).__toastPromise) {
-				(window as any).__toastPromise.reject(error);
-			}
-		},
-		onSettled: () => {
-			console.log('🔄 Mutation settled (either success or error)');
-			// Clean up
-			delete (window as any).__toastPromise;
+			});
 		},
 	});
 
@@ -302,6 +247,7 @@ function HomePage() {
 								id="exam-year-range-slider"
 								value={examYearRange}
 								onValueChange={(value) => {
+									// prevent the order checkbox from being checked when the year is a range
 									setExamYearRange(value);
 									if (value[1] - value[0] !== 0) {
 										setIncludeAllQuestions(false);
