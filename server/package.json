@@ -10,14 +10,20 @@
 	"private": true,
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"@types/pg": "^8.15.4",
+		"drizzle-kit": "^0.31.4"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
 	"dependencies": {
 		"@hono/zod-validator": "^0.7.0",
+		"@neondatabase/serverless": "^1.0.1",
+		"dotenv": "^17.2.0",
+		"drizzle-orm": "^0.44.3",
 		"hono": "^4.7.9",
+		"pg": "^8.16.3",
 		"zod": "^3.25.42"
 	}
 }

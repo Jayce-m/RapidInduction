@@ -2,7 +2,9 @@ import { Hono } from 'hono';
 import { serveStatic } from 'hono/bun';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { questionDB } from './data/questionDB'; // Changed to named import
+import { questionDB } from './data/questionDB';
+import { db } from './db/db';
+import { questions } from './db/schema';
 
 const app = new Hono();
 
@@ -10,11 +12,13 @@ app.use('*', logger());
 app.use('*', cors());
 
 // Get total number of questions
-app.get('/api/generate-exam/total-questions', (c) => {
-    return c.json({ totalQuestions: questionDB.length });
+app.get('/api/generate-exam/total-questions', async (c) => {
+    // return c.json({ totalQuestions: questionDB.length });
+    const totalQuestions = await db.select().from(questions);
+    console.log('🔍 Total questions:', totalQuestions.length);
+    return c.json({ totalQuestions });
 });
 
-// Update your API endpoint
 app.get('/api/generate-exam/random', (c) => {
     const count = Number(c.req.query('count')) || 5;
 

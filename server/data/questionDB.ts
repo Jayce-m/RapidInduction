@@ -18,7 +18,7 @@ export const questionSchema = z.object({
 	id: z.number().int().positive(),
 	/** Running order as it appeared in the exam paper. */
 	order: z.number().int().positive(),
-	examinersNotes: z.string().optional(), // exmainers notes as it appears in the report
+	examinersNotes: z.array(z.string()).optional(), // exmainers notes as it appears in the report
 	topic: z.array(z.string()),
 	subtopic: z.array(z.string()),
 	examYear: z.number().int().min(2000).max(new Date().getFullYear()),
@@ -419,6 +419,320 @@ const questionDB: Question[] = [
 			"flow-volume loops"
 		]
 	},
+	// ==================================================================
+	{
+		"id": 18,
+		"order": 1,
+		"topic": [],
+		"subtopic": [],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Describe"],
+		"passRate": 64.1,
+		"images": [],
+		"examinersNotes": [
+			"Candidates were required to demonstrate an understanding that oesophagectomy is high risk surgery and to consider:",
+			"• Cardiovascular and respiratory complications and risks",
+			"• Other significant conditions - ex. poor nutritional status, smoking",
+			"• Assessment of risk/risk stratification",
+			"• Optimisation of these in the context of the short time available, in attempt to reduce perioperative risk",
+			"Candidates who considered all these issues in the context of oesophageal cancer surgery and had a practical approach to assessment and optimisation achieved the higher marks.",
+			"There was a tendency for some candidates to give answers that were generic to major surgery rather than focused on oesophagectomy, lacking justification for their proposed strategy."
+		],
+		"parts": [
+			{
+				"prompt": "Describe your preoperative assessment of a patient with oesophageal cancer scheduled for an oesophagectomy and justify your strategy to optimise them before surgery.",
+				"weight": 100,
+				"answer": "**Preoperative Assessment:**\n\n1. Cardiovascular assessment:\n   - ECG, echo if indicated\n   - Exercise tolerance/functional capacity\n   - Risk stratification tools (e.g., RCRI)\n\n2. Respiratory assessment:\n   - Pulmonary function tests\n   - ABG if indicated\n   - Smoking history\n\n3. Nutritional assessment:\n   - BMI, albumin, weight loss\n   - Dysphagia severity\n\n4. Cancer-specific factors:\n   - Staging investigations\n   - Location and extent of tumor\n\n**Optimisation Strategy:**\n\n1. Cardiovascular:\n   - Optimize cardiac medications\n   - Consider cardiology review if high risk\n\n2. Respiratory:\n   - Smoking cessation (even brief)\n   - Chest physiotherapy\n   - Treat active infections\n\n3. Nutritional:\n   - Enteral/parenteral nutrition if malnourished\n   - Consider feeding jejunostomy\n\n4. Prehabilitation:\n   - Exercise program\n   - Psychological support\n\n**Justification:** High-risk surgery with significant morbidity/mortality requires thorough assessment and optimization within time constraints of cancer surgery."
+			}
+		],
+		"coreConcepts": ["oesophagectomy risks", "preoperative optimization", "cardiovascular assessment", "respiratory assessment", "nutritional status", "risk stratification"]
+	},
+	{
+		"id": 17,
+		"order": 2,
+		"topic": ["pain management", "trauma"],
+		"subtopic": ["amputation", "phantom limb pain"],
+		"examYear": 2023,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Discuss"],
+		"passRate": 77.3,
+		"aiGenerated": false,
+		"images": [],
+		"examinersNotes": [
+			"This was a well answered question where the majority of candidates considered a range of options and techniques for such a patient. ",
+			"Better candidates discussed the use of tricyclics and antineuropathic agents within their management plan in an attempt to reduce the incidence/severity of phantom limb pain."
+		],
+		"parts": [
+			{
+				"prompt": "Discuss the intraoperative and postoperative pain management of a trauma patient who requires a semi-elective below knee amputation for an isolated injury.",
+				"weight": 100,
+				"answer": ""
+			}
+		],
+		"coreConcepts": ["postoperative pain", "phantom limb", "trauma management", "neuropathic agents"]
+	},
+	{
+		"id": 18,
+		"order": 3,
+		"topic": ["neuroanaesthesia"],
+		"subtopic": ["ischaemic stroke", "clot retrieval"],
+		"examYear": 2023,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Discuss"],
+		"passRate": 33.3,
+		"images": [],
+		"examinersNotes": [
+			"This question was poorly answered, and it is possible that it reflects lack of experience in this area of anaesthesia practice. ",
+			"Given there is significant demand on anaesthetic departments to provide support for patients undergoing a variety of interventional procedures it is expected that candidates will be familiar with the issues involved in caring for these patients.\n",
+			"Candidates were required to demonstrate an understanding of:\n",
+			"• the time critical nature – minimising time from presentation to the intervention\n",
+			"• the importance of maintaining adequate cerebral perfusion - high targets for bp pre- and during the procedure\n",
+			"• the advantages/disadvantages of anaesthesia techniques – GA or LA +/- sedation\n",
+			"• the requirement for post procedure high acuity monitoring of bp and neurological status.\n",
+			"Candidates’ reliance on the proceduralist for advice or instruction was commonly seen in answers and whilst this procedure is undoubtedly a collaborative one a discussion of the principles behind the haemodynamic goals was required.\n",
+			"Whilst all candidates described pursuing a GA technique in this scenario few identified the pitfalls of this technique as opposed to LA +/- sedation/monitored care. ",
+			"Many candidates also tended to devote a large proportion of their answer to potential difficult airway management in a remote site and whilst it is an ‘off-floor’ procedure this was not the primary consideration here.",
+		],
+		"parts": [
+			{
+				"prompt": "Discuss the perioperative management of a patient requiring clot retrieval for an acute ischaemic stroke.",
+				"weight": 100,
+				"answer": ""
+			}
+		],
+		"coreConcepts": ["clot retrieval", "stroke", "GA vs LA", "cerebral perfusion", "time critical"]
+	},
+	// ====== EXAM 2022.1 ============================
+	// ===============================================
+	{
+		"id": 18,
+		"order": 1,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Describe"],
+		"passRate": 64.1,
+		"images": [],
+		"examinersNotes": [
+			"Candidates were required to demonstrate an understanding that oesophagectomy is high risk surgery and to consider:\n",
+			"• Cardiovascular and respiratory complications and risks\n",
+			"• Other significant conditions - ex. poor nutritional status, smoking\n",
+			"• Assessment of risk/risk stratification\n",
+			"• Optimisation of these in the context of the short time available, in attempt to reduce perioperative risk\n",
+			"Candidates who considered all these issues in the context of oesophageal cancer surgery and had\n",
+			"a practical approach to assessment and optimisation achieved the higher marks.\n",
+			"There was a tendency for some candidates to give answers that were generic to major surgery\n",
+			"rather than focused on oesophagectomy, lacking justification for their proposed strategy.",
+		],
+		"parts": [
+			{
+				"prompt": "Describe your preoperative assessment of a patient with oesophageal cancer scheduled for an oesophagectomy and justify your strategy to optimise them before surgery.",
+				"weight": 100,
+				"answer": "insert AI answer scaffold here."
+			}
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	},
+	{
+		"id": 19,
+		"order": 2,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Outline"],
+		"passRate": 79.0,
+		"images": [],
+		"examinersNotes": [
+			"Candidates were required to include the following in their answer to this question:",
+			"• A reasonable history about the headache (onset, severity, type of pain etc).",
+			"• Exclusion of intracranial pathology - ex. haemorrhage, tumour, trauma.",
+			"• Appreciation of the fact that medication may help but unlikely to be a cure so",
+			"multidisciplinary support/assessment/treatment will be required.",
+			"• Avoidance of full mu agonists when considering medications."
+		],
+		"parts": [
+			{
+				"prompt": "Outline your management of a patient with chronic daily headache.",
+				"weight": 100,
+				"answer": "insert AI answer scaffold here.",
+			}
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	},
+	{
+		"id": 20,
+		"order": 3,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Outline"],
+		"passRate": 31.3,
+		"images": [],
+		"examinersNotes": [
+			"This question was poorly answered. While most candidates correctly interpreted the ABG, when attempted, many struggled to correctly calculate the A-a gradient. The list of causes of hypoxia in these patients was often incomplete.",
+			"The list was required to include",
+			"1. Hepatopulmonary syndrome",
+			"2. Portopulmonary hypertension",
+			"3. Mechanical - ascites, hepatic hydrothorax, massive hepatomegaly"
+
+		],
+		"parts": [
+			{
+				"prompt": "The following are the arterial blood gas (ABG) results of a patient with chronic liver disease:",
+				"answer": "insert AI answer scaffold here.",
+				"images": [
+					{
+						"id": "ABG Results",
+						"url": "/2022-1_Q3.png"
+					}
+				]
+			},
+			{
+				"prompt": "Interpret this ABG.",
+				"answer": "",
+			},
+			{
+				"prompt": "List the causes of hypoxia in patients with chronic liver disease.",
+				"answer": "",
+			},
+			{
+				"prompt": "Describe how you would differentiate between the causes of hypoxia in patients with chronic liver disease.",
+				"answer": "",
+			},
+
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	},
+	{
+		"id": 21,
+		"order": 4,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Outline"],
+		"passRate": 45.6,
+		"images": [],
+		"examinersNotes": [
+			"This question required candidates to demonstrate an adequate understanding of service design by considering the following issues:",
+			"• Monitoring of the patient - physiological variables and epidural site",
+			"• Dedicated equipment - pump and programme, connections/lines, medications",
+			"• Acute Pain Service input - daily review/24-hour access for help/advice",
+			"• Education and in service training for nursing staff and RMOs",
+			"• Protocols for managing problems - ex nausea, itch, inadequate analgesia, hypotension",
+			"• Continuous audit process",
+		],
+		"parts": [
+			{
+				"prompt": "Describe the factors that ensure the safety and quality of a ward-based postoperative epidural analgesia service.",
+				"answer": "insert AI answer scaffold here.",
+			}
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	},
+	{
+		"id": 22,
+		"order": 5,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Describe", "Outline"],
+		"passRate": 86.7,
+		"images": [],
+		"examinersNotes": [
+			"The overwhelming majority of candidates were able to describe a recognised technique with no critical step omitted. Most noted the importance of the cricothyroid membrane in their description with better candidates going on to describe the surface anatomy and the surrounding structures used to identify it.",
+			"In the second part of the question the potential complications and limitations of the chosen technique were adequately covered by most candidates. Better candidates expanded their answer to include the context of a patient in an emergency with comorbidities that could impact on the success of the technique.",
+			"Some candidates also acknowledged the advantages of protocols for CICO, annual simulation training and familiarisation with, and ready availability of, pre-prepared standardised CICO equipment."
+		],
+		"parts": [
+			{
+				"prompt": "Describe a technique for front of neck access to the airway in a 'Can't Intubate, Can't Oxygenate' situation.",
+				"weight": 50,
+				"answer": "insert AI answer scaffold here.",
+			},
+			{
+				"prompt": "Outline the potential complications and limitations of this technique.",
+				"weight": 50,
+				"answer": "insert AI answer scaffold here.",
+			}
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	},
+	{
+		"id": 23,
+		"order": 6,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Discuss"],
+		"passRate": 54.9,
+		"images": [],
+		"examinersNotes": [
+			"This question required candidates to demonstrate an understanding of the implications of laparoscopic surgery in a patient with severe pulmonary hypertension (PHT) appreciating that",
+			"• increased intraabdominal pressure can reduce venous return and cardiac output",
+			"• CO2 used for insufflation will increase PaCO2 and thereby increase pulmonary vascular resistance",
+			"Answers were required to include consideration of:",
+			"• Preoperative assessment and optimization including recent assessment of PHT and right ventricular function.",
+			"• Consideration of options - open versus laparoscopic surgery",
+			"• Surgery in a suitable location - hospital with specialist support",
+			"• Appropriate vascular access - arterial line essential",
+			"• Anaesthetic plan to minimize changes in pulmonary vascular resistance",
+			"Candidates who failed to achieve a pass mark in this question were those who didn't consider the implications of laparoscopic surgery, didn't demonstrate adequate understanding of pulmonary hypertens",
+		],
+		"parts": [
+			{
+				"prompt": "A patient with primary pulmonary hypertension is scheduled for laparoscopic bowel resection. Their current medication is bosentan PO 125mg bd. Discuss how their condition influences your perioperative management.",
+				"answer": "insert AI answer scaffold here.",
+			}
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	},
+	{
+		"id": 24,
+		"order": 6,
+		"topic": [""],
+		"subtopic": ["", ""],
+		"examYear": 2022,
+		"sitting": 1,
+		"questionType": "SAQ",
+		"instructionWord": ["Discuss"],
+		"passRate": 54.9,
+		"images": [],
+		"examinersNotes": [
+			"This question required candidates to demonstrate an understanding of the implications of laparoscopic surgery in a patient with severe pulmonary hypertension (PHT) appreciating that",
+			"• increased intraabdominal pressure can reduce venous return and cardiac output",
+			"• CO2 used for insufflation will increase PaCO2 and thereby increase pulmonary vascular resistance",
+			"Answers were required to include consideration of:",
+			"• Preoperative assessment and optimization including recent assessment of PHT and right ventricular function.",
+			"• Consideration of options - open versus laparoscopic surgery",
+			"• Surgery in a suitable location - hospital with specialist support",
+			"• Appropriate vascular access - arterial line essential",
+			"• Anaesthetic plan to minimize changes in pulmonary vascular resistance",
+			"Candidates who failed to achieve a pass mark in this question were those who didn't consider the implications of laparoscopic surgery, didn't demonstrate adequate understanding of pulmonary hypertens",
+		],
+		"parts": [
+			{
+				"prompt": "A patient with primary pulmonary hypertension is scheduled for laparoscopic bowel resection. Their current medication is bosentan PO 125mg bd. Discuss how their condition influences your perioperative management.",
+				"answer": "insert AI answer scaffold here.",
+			}
+		],
+		"coreConcepts": ["insert AI generated core concepts here"]
+	}
 ];
 
 
