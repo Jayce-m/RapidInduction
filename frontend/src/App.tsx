@@ -1,11 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-import Confetti from 'react-confetti';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Bounce, ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import logo from './assets/logo.png';
-import song from './assets/song.mp3';
-import { Button } from './components/ui/button';
 import { Checkbox } from './components/ui/checkbox';
 import {
 	Select,
@@ -21,18 +18,8 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from './components/ui/tooltip';
+import { Button } from './components/ui/button';
 import { generatePDF } from './generatePdf';
-
-let currentAudio: HTMLAudioElement | null = null;
-
-async function getTotalQuestions() {
-	const res = await fetch('/api/generate-exam/total-questions');
-	if (!res.ok) {
-		throw new Error('Failed to fetch total questions');
-	}
-	const data = await res.json();
-	return data;
-}
 
 async function getRandomQuestions(
 	count: number,
@@ -46,13 +33,11 @@ async function getRandomQuestions(
 		url += `&yearFrom=${yearRange[0]}&yearTo=${yearRange[1]}`;
 	}
 
-	// Convert sitting selection to boolean parameters
 	if (sitting === 'first') {
 		url += '&firstSitting=true&secondSitting=false';
 	} else if (sitting === 'second') {
 		url += '&firstSitting=false&secondSitting=true';
 	} else {
-		// Default to both sittings if not specified or if 'both' is selected
 		url += '&firstSitting=true&secondSitting=true';
 	}
 
@@ -60,87 +45,11 @@ async function getRandomQuestions(
 		url += '&preserveOrder=true';
 	}
 
-	console.log('🔗 Requesting URL:', url);
-
 	const res = await fetch(url);
 	if (!res.ok) {
 		throw new Error('Failed to fetch random questions');
 	}
-	const data = await res.json();
-	return data;
-}
-
-function playAudio() {
-	if (currentAudio) {
-		currentAudio.pause();
-		currentAudio.currentTime = 0;
-	}
-
-	currentAudio = new Audio(song);
-	currentAudio.volume = 0.3;
-	currentAudio.play();
-}
-
-function stopAudio() {
-	if (currentAudio) {
-		currentAudio.pause();
-		currentAudio.currentTime = 0;
-		currentAudio = null;
-	}
-}
-
-function Navigation({
-	partyMode,
-	setPartyMode,
-}: { partyMode: boolean; setPartyMode: (value: boolean) => void }) {
-	const handlePartyModeToggle = () => {
-		if (!partyMode) {
-			setPartyMode(!partyMode);
-			playAudio();
-		} else {
-			setPartyMode(!partyMode);
-			stopAudio();
-		}
-	};
-
-	return (
-		<div className="flex justify-center w-full px-4">
-			<nav className="bg-white shadow-lg rounded-b-[16px] px-4 sm:px-8 w-fit">
-				<div className="flex items-center h-12 sm:h-14">
-					<div className="flex items-center space-x-4">
-						<Button
-							variant="ghost"
-							className={`px-0 text-sm sm:text-base font-semibold ${partyMode ? 'text-blue-500' : 'text-gray-500'} transition-colors`}
-							onClick={() => handlePartyModeToggle()}
-						>
-							{partyMode ? '🎉 Party Mode' : '🎈 Party Mode'}
-						</Button>
-					</div>
-				</div>
-			</nav>
-		</div>
-	);
-}
-
-function Footer() {
-	const { isPending, error, data } = useQuery({
-		queryKey: ['get-total-questions'],
-		queryFn: getTotalQuestions,
-	});
-
-	return (
-		<footer className="fixed bottom-0 w-full pb-4 px-4 text-center text-xs sm:text-sm">
-			{isPending ? (
-				'Loading question count...'
-			) : error ? (
-				<span className="text-red-500">Error loading question count</span>
-			) : (
-				`Made with ❤️ by CJ. v1.0 | Total Questions: ${
-					data ? data.totalQuestions : 'N/A'
-				}`
-			)}
-		</footer>
-	);
+	return res.json();
 }
 
 function HomePage() {
@@ -163,12 +72,7 @@ function HomePage() {
 			sitting: string;
 			preserveOrder: boolean;
 		}) => {
-			const questions = await getRandomQuestions(
-				count,
-				yearRange,
-				sitting,
-				preserveOrder,
-			);
+			const questions = await getRandomQuestions(count, yearRange, sitting, preserveOrder);
 			await generatePDF(questions);
 			return questions;
 		},
@@ -201,23 +105,21 @@ function HomePage() {
 		});
 	};
 
-	// Helper function to format the year range display
 	const formatYearRange = () => {
 		if (examYearRange[0] === examYearRange[1]) {
-			return examYearRange[0].toString(); // Single year
+			return examYearRange[0].toString();
 		}
-		return `${examYearRange[0]} - ${examYearRange[1]}`; // Range
+		return `${examYearRange[0]} - ${examYearRange[1]}`;
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] sm:min-h-[calc(100vh-4.5rem)] py-8">
+		<div className="flex flex-col items-center justify-center min-h-screen py-8">
 			<div className="w-full max-w-md space-y-4 sm:space-y-6 px-4">
 				<div className="space-y-3 sm:space-y-4 text-center">
 					<div className="flex justify-center">
 						<img src={logo} alt="Logo" className="w-32 h-32 sm:w-46 sm:h-46" />
 					</div>
 
-					{/* Title and Description */}
 					<div className="space-y-2">
 						<h1 className="text-2xl sm:text-3xl font-bold">ANZCA Part Two</h1>
 						<h1 className="text-2xl sm:text-3xl font-bold">Exam Generator</h1>
@@ -247,7 +149,6 @@ function HomePage() {
 								id="exam-year-range-slider"
 								value={examYearRange}
 								onValueChange={(value) => {
-									// prevent the order checkbox from being checked when the year is a range
 									setExamYearRange(value);
 									if (value[1] - value[0] !== 0) {
 										setIncludeAllQuestions(false);
@@ -336,7 +237,6 @@ function HomePage() {
 						</Select>
 					</div>
 
-					{/* Generate Button */}
 					<Button
 						className="w-full text-white"
 						size="lg"
@@ -347,62 +247,29 @@ function HomePage() {
 					</Button>
 				</div>
 			</div>
+			<ToastContainer
+				position="bottom-center"
+				autoClose={2000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick={false}
+				rtl={false}
+				pauseOnFocusLoss={false}
+				draggable={false}
+				pauseOnHover
+				theme="light"
+				transition={Bounce}
+				toastStyle={{ fontSize: '14px' }}
+			/>
 		</div>
 	);
 }
 
 function App() {
-	const [partyMode, setPartyMode] = useState(false);
-	const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
-	useEffect(() => {
-		const handleResize = () => {
-			setWindowSize({
-				width: window.innerWidth,
-				height: window.innerHeight,
-			});
-		};
-		handleResize();
-		window.addEventListener('resize', handleResize);
-		return () => window.removeEventListener('resize', handleResize);
-	}, []);
-
-	useEffect(() => {
-		if (partyMode) {
-			document.body.classList.add('party-mode-bg');
-		} else {
-			document.body.classList.remove('party-mode-bg');
-		}
-		return () => {
-			document.body.classList.remove('party-mode-bg');
-		};
-	}, [partyMode]);
-
 	return (
 		<div className="fixed inset-0 overflow-hidden">
-			<div
-				className={`w-full h-full overflow-y-auto ${partyMode ? 'party-mode-bg' : 'bg-gray-50'}`}
-			>
-				{partyMode && (
-					<Confetti width={windowSize.width} height={windowSize.height} />
-				)}
-				<Navigation partyMode={partyMode} setPartyMode={setPartyMode} />
+			<div className="w-full h-full overflow-y-auto bg-gray-50">
 				<HomePage />
-				<Footer />
-				<ToastContainer
-					position="bottom-center"
-					autoClose={2000}
-					hideProgressBar={false}
-					newestOnTop={false}
-					closeOnClick={false}
-					rtl={false}
-					pauseOnFocusLoss={false}
-					draggable={false}
-					pauseOnHover
-					theme="light"
-					transition={Bounce}
-					toastStyle={{ fontSize: '14px' }}
-				/>
 			</div>
 		</div>
 	);
