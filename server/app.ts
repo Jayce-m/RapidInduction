@@ -2,146 +2,139 @@ import { Hono } from 'hono';
 import { serveStatic } from 'hono/bun';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { questionDB } from './data/questionDB';
+import { and, asc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { db } from './db/db';
-import { questions } from './db/schema';
+import {
+    coreConcepts,
+    examinersNotes,
+    images,
+    instructionWords,
+    questionCoreConcepts,
+    questionInstructionWords,
+    questionPartImages,
+    questionParts,
+    questionSubtopics,
+    questionTopics,
+    questions,
+    subtopics,
+    topics,
+} from './db/schema';
 
 const app = new Hono();
 
 app.use('*', logger());
 app.use('*', cors());
 
-// Get total number of questions
 app.get('/api/generate-exam/total-questions', async (c) => {
-    // return c.json({ totalQuestions: questionDB.length });
-    const totalQuestions = await db.select().from(questions);
-    console.log('🔍 Total questions:', totalQuestions.length);
-    return c.json({ totalQuestions });
+    const count = await db.$count(questions);
+    return c.json({ totalQuestions: count });
 });
 
-app.get('/api/generate-exam/random', (c) => {
+app.get('/api/generate-exam/random', async (c) => {
     const count = Number(c.req.query('count')) || 5;
-
-    // Handle both single year and year range
-    const year = c.req.query('year') ? Number(c.req.query('year')) : null;
     const yearFrom = c.req.query('yearFrom') ? Number(c.req.query('yearFrom')) : null;
     const yearTo = c.req.query('yearTo') ? Number(c.req.query('yearTo')) : null;
     const firstSitting = c.req.query('firstSitting') === 'true';
     const secondSitting = c.req.query('secondSitting') === 'true';
     const preserveOrder = c.req.query('preserveOrder') === 'true';
 
-    console.log('🎯 Debug - Parameters:', {
-        firstSitting,
-        secondSitting,
-        preserveOrder,
-        firstSittingRawValue: c.req.query('firstSitting'),
-        secondSittingRawValue: c.req.query('secondSitting'),
-        preserveOrderRawValue: c.req.query('preserveOrder')
-    });
+    // Build filter conditions
+    const conditions = [];
+    if (yearFrom !== null) conditions.push(gte(questions.examYear, yearFrom));
+    if (yearTo !== null) conditions.push(lte(questions.examYear, yearTo));
 
-    console.log('🔍 API Request:', { count, year, yearFrom, yearTo, firstSitting, secondSitting, preserveOrder });
+    const sittingValues: number[] = [];
+    if (firstSitting) sittingValues.push(1);
+    if (secondSitting) sittingValues.push(2);
+    if (sittingValues.length === 1) conditions.push(inArray(questions.sitting, sittingValues));
+    // if both or neither selected, no sitting filter (include all)
 
-    let filteredQuestions = questionDB;
+    const orderBy = (preserveOrder && yearFrom === yearTo)
+        ? asc(questions.order)
+        : sql`RANDOM()`;
 
-    // todo - remove this at some point
-    if (year) {
-        filteredQuestions = questionDB.filter(q => q.examYear === year);
-        console.log(`📅 Filtered to ${filteredQuestions.length} questions from year ${year}`);
-    }
-    // Filter by year range (new functionality)
-    else if (yearFrom !== null && yearTo !== null) {
-        filteredQuestions = questionDB.filter(q =>
-            q.examYear >= yearFrom && q.examYear <= yearTo
-        );
-        console.log(`📅 Filtered to ${filteredQuestions.length} questions from years ${yearFrom}-${yearTo}`);
-    }
+    const selectedQuestions = await db
+        .select()
+        .from(questions)
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(orderBy)
+        .limit(count);
 
-    // Filter by sitting if specified
-    if (firstSitting && secondSitting) {
-        // No filter, both sittings included
-        console.log('🪑 Including both sittings');
-        console.log('Current questions distribution:', {
-            sitting1: filteredQuestions.filter(q => q.sitting === 1).length,
-            sitting2: filteredQuestions.filter(q => q.sitting === 2).length
-        });
-    } else if (firstSitting) {
-        console.log('🪑 Filtering for first sitting');
-        const beforeCount = filteredQuestions.length;
-        filteredQuestions = filteredQuestions.filter(q => q.sitting === 1);
-        console.log(`🪑 First sitting filter: ${beforeCount} → ${filteredQuestions.length} questions`);
-    } else if (secondSitting) {
-        const beforeCount = filteredQuestions.length;
-        filteredQuestions = filteredQuestions.filter(q => q.sitting === 2);
-        console.log(`🪑 Second sitting filter: ${beforeCount} → ${filteredQuestions.length} questions`);
-    } else {
-        // If neither sitting is selected, include both (default behavior)
-        console.log('🪑 No sitting specified, including both sittings');
-        console.log('Current questions distribution:', {
-            sitting1: filteredQuestions.filter(q => q.sitting === 1).length,
-            sitting2: filteredQuestions.filter(q => q.sitting === 2).length
-        });
-    }
-
-    if (filteredQuestions.length === 0) {
+    if (selectedQuestions.length === 0) {
         return c.json({ error: 'No questions found for the specified criteria' }, 404);
     }
 
-    let result: typeof filteredQuestions;
+    const questionIds = selectedQuestions.map(q => q.id);
 
-    // If preserveOrder is true AND it's a single year, sort by order property
-    if (preserveOrder && yearFrom === yearTo) {
-        console.log('📋 Preserving original exam order');
-        // Sort by order property
-        const sortedQuestions = [...filteredQuestions].sort((a, b) => a.order - b.order);
+    // Fetch all related data in parallel
+    const [parts, topicRows, subtopicRows, instructionWordRows, coreConceptRows, noteRows] = await Promise.all([
+        db.select().from(questionParts)
+            .where(inArray(questionParts.questionId, questionIds))
+            .orderBy(asc(questionParts.orderIndex)),
+        db.select({ questionId: questionTopics.questionId, name: topics.name })
+            .from(questionTopics)
+            .innerJoin(topics, eq(questionTopics.topicId, topics.id))
+            .where(inArray(questionTopics.questionId, questionIds)),
+        db.select({ questionId: questionSubtopics.questionId, name: subtopics.name })
+            .from(questionSubtopics)
+            .innerJoin(subtopics, eq(questionSubtopics.subtopicId, subtopics.id))
+            .where(inArray(questionSubtopics.questionId, questionIds)),
+        db.select({ questionId: questionInstructionWords.questionId, word: instructionWords.word })
+            .from(questionInstructionWords)
+            .innerJoin(instructionWords, eq(questionInstructionWords.instructionWordId, instructionWords.id))
+            .where(inArray(questionInstructionWords.questionId, questionIds)),
+        db.select({ questionId: questionCoreConcepts.questionId, concept: coreConcepts.concept })
+            .from(questionCoreConcepts)
+            .innerJoin(coreConcepts, eq(questionCoreConcepts.coreConceptId, coreConcepts.id))
+            .where(inArray(questionCoreConcepts.questionId, questionIds)),
+        db.select().from(examinersNotes)
+            .where(inArray(examinersNotes.questionId, questionIds))
+            .orderBy(asc(examinersNotes.orderIndex)),
+    ]);
 
-        // Take the first n questions (they're already in order)
-        result = sortedQuestions.slice(0, count);
+    // Fetch images for question parts
+    const partIds = parts.map(p => p.id);
+    const partImageRows = partIds.length > 0
+        ? await db.select({
+            questionPartId: questionPartImages.questionPartId,
+            filename: images.filename,
+            cdnUrl: images.cdnUrl,
+        })
+            .from(questionPartImages)
+            .innerJoin(images, eq(questionPartImages.imageId, images.id))
+            .where(inArray(questionPartImages.questionPartId, partIds))
+            .orderBy(asc(questionPartImages.displayOrder))
+        : [];
 
-        console.log('📋 Questions in original exam order:',
-            result.map(q => ({ order: q.order, id: q.id }))
-        );
-    } else {
-        // Shuffle the filtered questions
-        const shuffledArray = shuffleArray(filteredQuestions);
-
-        // Take the first n (count) questions
-        result = shuffledArray.slice(0, count);
-
-        console.log('🔀 Questions shuffled randomly');
-    }
-
-    // Log year and sitting distribution of returned questions
-    const yearDistribution = result.reduce((acc, q) => {
-        acc[q.examYear] = (acc[q.examYear] || 0) + 1;
-        return acc;
-    }, {} as Record<number, number>);
-
-    const sittingDistribution = {
-        sitting1: result.filter(q => q.sitting === 1).length,
-        sitting2: result.filter(q => q.sitting === 2).length
-    };
-
-    console.log('📊 Year distribution of returned questions:', yearDistribution);
-    console.log('🪑 Sitting distribution of returned questions:', sittingDistribution);
-    console.log(`✅ Returning ${result.length} questions`);
+    // Assemble response
+    const result = selectedQuestions.map(q => ({
+        id: q.id,
+        order: q.order,
+        examYear: q.examYear,
+        sitting: q.sitting,
+        questionType: q.questionType,
+        passRate: q.passRate ? Number(q.passRate) : undefined,
+        aiGenerated: q.aiGenerated,
+        topic: topicRows.filter(r => r.questionId === q.id).map(r => r.name),
+        subtopic: subtopicRows.filter(r => r.questionId === q.id).map(r => r.name),
+        instructionWord: instructionWordRows.filter(r => r.questionId === q.id).map(r => r.word),
+        coreConcepts: coreConceptRows.filter(r => r.questionId === q.id).map(r => r.concept),
+        examinersNotes: noteRows.filter(r => r.questionId === q.id).map(r => r.note),
+        parts: parts
+            .filter(p => p.questionId === q.id)
+            .map(p => ({
+                prompt: p.prompt,
+                answer: p.answer,
+                weight: p.weight ? Number(p.weight) : undefined,
+                images: partImageRows
+                    .filter(img => img.questionPartId === p.id)
+                    .map(img => ({ id: img.filename, url: img.cdnUrl })),
+            })),
+    }));
 
     return c.json(result);
 });
 
-// Fisher-Yates shuffle algorithm
-function shuffleArray<T>(questionArray: T[]): T[] {
-    const shuffled = [...questionArray];
-
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = shuffled[i] as T;
-        shuffled[i] = shuffled[j] as T;
-        shuffled[j] = temp;
-    }
-    return shuffled;
-}
-
-// Serve static files from the frontend build
 app.use('/*', serveStatic({ root: 'frontend/dist' }));
 
 export default app;

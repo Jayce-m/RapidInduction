@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const imageSchema = z.object({
 	id: z.string(),
-	url: z.string().url(),
+	url: z.string(),
 })
 
 export const questionPartSchema = z.object({
@@ -509,7 +509,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	},
 	{
 		"id": 19,
@@ -537,7 +537,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	},
 	{
 		"id": 20,
@@ -581,7 +581,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	},
 	{
 		"id": 21,
@@ -609,7 +609,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	},
 	{
 		"id": 22,
@@ -639,7 +639,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	},
 	{
 		"id": 23,
@@ -670,7 +670,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	},
 	{
 		"id": 24,
@@ -701,7 +701,7 @@ const questionDB: Question[] = [
 				"answer": "insert AI answer scaffold here."
 			}
 		],
-		"coreConcepts": ["insert AI generated core concepts here"]
+		"coreConcepts": []
 	}
 ];
 
