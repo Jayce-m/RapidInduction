@@ -7,6 +7,8 @@ async function createCoverPage(
     title: string,
     subtitle: string,
     questionCount: number,
+    examYear: number,
+    sitting: number,
     includeImage = true
 ) {
     const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -58,7 +60,7 @@ async function createCoverPage(
     const subTitleLine1CenterX = (coverPage.getWidth() - subTitleLine1Width) / 2;
     const subTitleLine1Y = 400;
 
-    const subTitleLine2 = "12 AUGUST 2023 (2023.2)";
+    const subTitleLine2 = `${examYear}.${sitting}`;
     const subTitleLine2Width = font.widthOfTextAtSize(subTitleLine2, 12);
     const subTitleLine2CenterX = (coverPage.getWidth() - subTitleLine2Width) / 2;
 
@@ -188,6 +190,10 @@ async function generatePDF(questions: Question[]) {
         const margin = 50;
         const lineHeight = fontSize * 1.5;
 
+        // Get exam year and sitting from the first question
+        const examYear = questions[0]?.examYear || new Date().getFullYear();
+        const sitting = questions[0]?.sitting || 1;
+        
         // PART 1: QUESTION BOOKLET
         // Create cover page for questions with image
         const { font, boldFont } = await createCoverPage(
@@ -195,6 +201,8 @@ async function generatePDF(questions: Question[]) {
             "ANZCA FINAL EXAMINATION",
             "SHORT ANSWER QUESTION PAPER",
             questions.length,
+            examYear,
+            sitting,
             true // Include image
         );
 
@@ -463,6 +471,8 @@ async function generatePDF(questions: Question[]) {
             "ANZCA FINAL EXAMINATION",
             "ANSWER GUIDE",
             questions.length,
+            examYear,
+            sitting,
             false // No image for answer booklet
         );
 

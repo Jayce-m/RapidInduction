@@ -83,7 +83,6 @@ def update_questions_from_excel(json_file_path, excel_file_path, output_file_pat
         results = find_question_topics(excel_file_path, search_text)
         
         if results:
-            # Use the first match (or you could implement logic to choose best match)
             match = results[0]
             
             # Update the question
@@ -119,25 +118,10 @@ def update_questions_from_excel(json_file_path, excel_file_path, output_file_pat
     print(f"  Output saved to: {output_path}")
 
 
-# Example usage
 if __name__ == "__main__":
-    # Update all questions in the JSON file
     update_questions_from_excel(
-        json_file_path='data.json',      # Your JSON file
-        excel_file_path='data.xlsx',          # Your Excel file
-        output_file_path='questions_updated_test.json',  # Save to new file (optional)
-        search_length=50                      # Use first 50 characters of prompt
+        json_file_path='data.json',                             # JSON file containing current questions 
+        excel_file_path='data.xlsx',                            # Excel file containing topics for questions
+        output_file_path='questions_updated_test.json',         # Save to new file (optional)
+        search_length=50                                        # Use first 50 characters of prompt
     )
-    
-    # Or process a single question manually
-    # with open('questions.json', 'r') as f:
-    #     questions = json.load(f)
-    # 
-    # question = questions[0]
-    # prompt_start = question['parts'][0]['prompt'][:50]
-    # results = find_question_topics('data.xlsx', prompt_start)
-    # 
-    # if results:
-    #     print(f"Found {len(results)} matches")
-    #     for r in results:
-    #         print(f"  Section: {r['section']}, Topic: {r['topic']}")
