@@ -20,6 +20,7 @@ const buttonVariants = cva(
 				ghost:
 					'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
 				link: 'text-primary underline-offset-4 hover:underline',
+				pill: 'border bg-card shadow-xs hover:bg-muted',
 			},
 			size: {
 				default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -28,6 +29,8 @@ const buttonVariants = cva(
 				icon: 'size-9',
 			},
 		},
+		// Size variants set their own radius, so the pill shape has to win afterwards.
+		compoundVariants: [{ variant: 'pill', className: 'rounded-full' }],
 		defaultVariants: {
 			variant: 'default',
 			size: 'default',
