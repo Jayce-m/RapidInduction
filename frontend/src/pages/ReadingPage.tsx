@@ -7,6 +7,10 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+	underlineTabList,
+	underlineTabTrigger,
+} from '@/components/underlineTabs';
 import { cn } from '@/lib/utils';
 import { percent, topicAccuracy, useAttempts } from '@/study/attempts';
 import {
@@ -40,7 +44,7 @@ function TopicSelect({
 	const [open, setOpen] = useState(false);
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+			<PopoverTrigger className="inline-flex items-center gap-1 text-[15px] text-muted-foreground hover:text-foreground">
 				Topic
 				<ChevronDown className="size-4" />
 			</PopoverTrigger>
@@ -75,11 +79,11 @@ function Section({
 	children,
 }: { title: string; subtitle?: string; children: ReactNode }) {
 	return (
-		<section className="space-y-3">
+		<section className="space-y-2.5">
 			<div>
-				<h3 className="font-semibold">{title}</h3>
+				<h3 className="font-medium">{title}</h3>
 				{subtitle && (
-					<p className="text-xs text-muted-foreground">{subtitle}</p>
+					<p className="text-xs leading-4 text-muted-foreground">{subtitle}</p>
 				)}
 			</div>
 			{children}
@@ -90,12 +94,12 @@ function Section({
 function TopicReading({ topic }: { topic: Topic }) {
 	const { reading } = topic;
 	return (
-		<div className="space-y-9 leading-relaxed">
+		<div className="space-y-12 leading-7">
 			<Section
 				title="Exam cues"
 				subtitle="What in the stem tells you this topic is being tested"
 			>
-				<ul className="list-disc space-y-1.5 pl-5">
+				<ul className="list-disc space-y-1 pl-5">
 					{reading.examCues.map((cue) => (
 						<li key={cue}>{cue}</li>
 					))}
@@ -105,12 +109,12 @@ function TopicReading({ topic }: { topic: Topic }) {
 				title="Key statement"
 				subtitle="The sentence to reproduce in a written answer"
 			>
-				<blockquote className="rounded-r-lg border-l-2 border-primary bg-muted px-4 py-3">
+				<blockquote className="rounded-r-lg border-l-2 border-[#1d1a18] bg-muted px-3.5 py-2 leading-[26px]">
 					{reading.keyStatement}
 				</blockquote>
 			</Section>
 			<Section title="Approach" subtitle="How to structure the answer">
-				<ol className="list-decimal space-y-1.5 pl-5 marker:text-muted-foreground">
+				<ol className="list-decimal space-y-1 pl-5 marker:text-muted-foreground">
 					{reading.approach.map((step) => (
 						<li key={step} className="pl-1">
 							{step}
@@ -119,7 +123,7 @@ function TopicReading({ topic }: { topic: Topic }) {
 				</ol>
 			</Section>
 			<Section title="Pitfalls">
-				<p className="rounded-lg bg-caution px-4 py-3 text-caution-foreground">
+				<p className="rounded-lg bg-caution px-3 py-2 leading-[26px]">
 					{reading.pitfalls}
 				</p>
 			</Section>
@@ -229,7 +233,9 @@ export function ReadingPage() {
 	if (!chapter) {
 		return (
 			<PageContainer>
-				<h1 className="font-display text-3xl">Chapter not found</h1>
+				<h1 className="font-display text-[26px] leading-8">
+					Chapter not found
+				</h1>
 				<Link
 					to="/quizzes"
 					className="mt-4 inline-block text-primary underline"
@@ -256,26 +262,31 @@ export function ReadingPage() {
 	};
 
 	return (
-		<PageContainer>
-			<div className="flex flex-wrap items-center justify-between gap-3">
+		<PageContainer wide>
+			<div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
 				<Link
 					to={`/quizzes?track=${chapter.track}`}
-					className="inline-flex items-center gap-1 text-sm hover:text-primary"
+					className="inline-flex items-center gap-1.5 text-[15px] text-primary hover:text-primary-border"
 				>
-					<ChevronLeft className="size-4" />
+					<ChevronLeft className="size-3.5" />
 					Quizzes
 				</Link>
 				<div className="flex items-center gap-3">
 					{nextChapter && (
 						<Link
 							to={`/quizzes/${nextChapter.id}`}
-							className="hidden items-center gap-1 text-sm hover:text-primary sm:inline-flex"
+							className="hidden items-center gap-1.5 text-[15px] text-primary hover:text-primary-border sm:inline-flex"
 						>
 							Continue to Chapter {chapterNumber(nextChapter)}
-							<ChevronRight className="size-4" />
+							<ChevronRight className="size-3.5" />
 						</Link>
 					)}
-					<Button size="sm" asChild className="rounded-full">
+					<Button
+						variant="pill"
+						size="sm"
+						asChild
+						className="bg-[#f4ebe9] text-xs font-medium hover:bg-chip"
+					>
 						<Link to={scopePath({ kind: 'chapter', chapterId: chapter.id })}>
 							Start chapter quiz
 						</Link>
@@ -283,60 +294,68 @@ export function ReadingPage() {
 				</div>
 			</div>
 
-			<h1 className="mt-8 font-display text-3xl sm:text-4xl">
+			<h1 className="mt-7 font-display text-[22px] leading-8 sm:text-[26px]">
 				{chapter.title}
 			</h1>
-			<p className="mt-1 text-sm text-muted-foreground">
+			<p className="mt-1 text-[15px] text-muted-foreground">
 				{chapter.topics.length} topics
 			</p>
-			<hr className="my-8" />
+			<hr className="mt-6" />
 
-			<TopicSelect
-				chapter={chapter}
-				topic={topic}
-				onSelect={(topicId) => update({ topic: topicId })}
-			/>
-			<div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-				<h2 className="text-2xl font-medium">{topic.title}</h2>
-				<Button variant="pill" size="sm" asChild>
-					<Link to={scopePath({ kind: 'topic', topicId: topic.id })}>
-						Practise this topic
-					</Link>
-				</Button>
+			<div className="mx-auto mt-14 max-w-[762px]">
+				<TopicSelect
+					chapter={chapter}
+					topic={topic}
+					onSelect={(topicId) => update({ topic: topicId })}
+				/>
+				<div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+					<h2 className="text-[22px] leading-8 tracking-[0.01em]">
+						{topic.title}
+					</h2>
+					<Button
+						variant="pill"
+						size="sm"
+						asChild
+						className="text-xs font-medium"
+					>
+						<Link to={scopePath({ kind: 'topic', topicId: topic.id })}>
+							Practise this topic
+						</Link>
+					</Button>
+				</div>
+
+				<Tabs
+					value={tab}
+					onValueChange={(value) => update({ tab: value as ReadingTab })}
+					className="mt-6 gap-10"
+				>
+					<TabsList
+						className={cn(underlineTabList, 'flex w-full justify-start gap-1')}
+					>
+						{(
+							[
+								['readings', 'Readings', BookOpen],
+								['attempts', 'Accuracy and attempts', Target],
+							] as const
+						).map(([value, label, Icon]) => (
+							<TabsTrigger
+								key={value}
+								value={value}
+								className={cn(underlineTabTrigger, 'gap-2 px-5 text-[15px]')}
+							>
+								<Icon className="text-primary/80" strokeWidth={1.6} />
+								{label}
+							</TabsTrigger>
+						))}
+					</TabsList>
+					<TabsContent value="readings">
+						<TopicReading topic={topic} />
+					</TabsContent>
+					<TabsContent value="attempts">
+						<TopicAttempts topic={topic} />
+					</TabsContent>
+				</Tabs>
 			</div>
-
-			<Tabs
-				value={tab}
-				onValueChange={(value) => update({ tab: value as ReadingTab })}
-				className="mt-6 gap-8"
-			>
-				<TabsList className="h-auto w-full justify-start gap-6 rounded-none border-b bg-transparent p-0">
-					{(
-						[
-							['readings', 'Readings', BookOpen],
-							['attempts', 'Accuracy and attempts', Target],
-						] as const
-					).map(([value, label, Icon]) => (
-						<TabsTrigger
-							key={value}
-							value={value}
-							className={cn(
-								'-mb-px flex-none rounded-none border-0 border-b-2 border-transparent px-0 pb-3 text-muted-foreground',
-								'data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none',
-							)}
-						>
-							<Icon />
-							{label}
-						</TabsTrigger>
-					))}
-				</TabsList>
-				<TabsContent value="readings">
-					<TopicReading topic={topic} />
-				</TabsContent>
-				<TabsContent value="attempts">
-					<TopicAttempts topic={topic} />
-				</TabsContent>
-			</Tabs>
 		</PageContainer>
 	);
 }

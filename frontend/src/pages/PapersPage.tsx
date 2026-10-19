@@ -121,9 +121,13 @@ export function PapersPage() {
 					</div>
 
 					<div className="space-y-2">
-						<h1 className="text-2xl sm:text-3xl font-bold">ANZCA Part Two</h1>
-						<h1 className="text-2xl sm:text-3xl font-bold">Exam Generator</h1>
-						<p className="text-sm sm:text-base text-gray-500 px-2">
+						<h1 className="font-display text-[26px] leading-8 sm:text-[30px] sm:leading-9">
+							ANZCA Part Two
+						</h1>
+						<h1 className="font-display text-[26px] leading-8 sm:text-[30px] sm:leading-9">
+							Exam Generator
+						</h1>
+						<p className="text-sm sm:text-base text-muted-foreground px-2">
 							Select the exam year range and number of questions to generate
 							your exam.
 						</p>
@@ -136,11 +140,11 @@ export function PapersPage() {
 						<div className="flex justify-between items-center">
 							<label
 								htmlFor="exam-year-range-slider"
-								className="text-sm font-medium text-gray-700"
+								className="text-sm font-medium text-foreground"
 							>
 								Exam Year Range
 							</label>
-							<span className="text-sm font-semibold text-blue-600">
+							<span className="text-sm font-semibold text-primary">
 								{formatYearRange()}
 							</span>
 						</div>
@@ -160,7 +164,7 @@ export function PapersPage() {
 								className="w-full"
 							/>
 						</div>
-						<div className="flex justify-between text-xs text-gray-500">
+						<div className="flex justify-between text-xs text-muted-foreground">
 							<span>2015</span>
 							<span>2025</span>
 						</div>
@@ -179,7 +183,7 @@ export function PapersPage() {
 										/>
 										<label
 											htmlFor="include-all"
-											className={`text-xs sm:text-sm ${!isSingleYearSelected ? 'text-gray-400' : 'text-gray-700'} cursor-default text-left`}
+											className={`text-xs sm:text-sm ${!isSingleYearSelected ? 'text-muted-foreground' : 'text-foreground'} cursor-default text-left`}
 										>
 											Order questions as they appeared in the original exam?
 										</label>
@@ -201,7 +205,7 @@ export function PapersPage() {
 					<div className="space-y-2">
 						<label
 							htmlFor="sitting-select"
-							className="text-sm font-medium text-gray-700"
+							className="text-sm font-medium text-foreground"
 						>
 							Exam Sitting
 						</label>
@@ -221,7 +225,7 @@ export function PapersPage() {
 					<div className="space-y-2">
 						<label
 							htmlFor="question-count-select"
-							className="text-sm font-medium text-gray-700"
+							className="text-sm font-medium text-foreground"
 						>
 							Number of Questions
 						</label>

@@ -111,7 +111,7 @@ function QuizRunner({
 				</p>
 			</div>
 
-			<h1 className="mt-6 font-display text-2xl sm:text-3xl">
+			<h1 className="mt-6 font-display text-[22px] leading-8 sm:text-[26px]">
 				{scopeTitle(scope)}
 			</h1>
 
@@ -222,7 +222,7 @@ export function QuizPage() {
 	if (!scope) {
 		return (
 			<PageContainer>
-				<h1 className="font-display text-3xl">Quiz not found</h1>
+				<h1 className="font-display text-[26px] leading-8">Quiz not found</h1>
 				<Link
 					to="/quizzes"
 					className="mt-4 inline-block text-primary underline"

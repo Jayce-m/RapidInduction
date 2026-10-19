@@ -21,7 +21,7 @@ import {
 function NotFoundPage() {
 	return (
 		<PageContainer>
-			<h1 className="font-display text-3xl">Page not found</h1>
+			<h1 className="font-display text-[26px] leading-8">Page not found</h1>
 			<Link to="/quizzes" className="mt-4 inline-block text-primary underline">
 				Back to quizzes
 			</Link>

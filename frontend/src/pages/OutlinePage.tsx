@@ -1,4 +1,5 @@
 import { PageContainer } from '@/components/PageContainer';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import {
 	Popover,
@@ -20,7 +21,11 @@ function TopicsMenu({ chapter }: { chapter: Chapter }) {
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
-				<Button variant="outline" size="sm" className="bg-card">
+				<Button
+					variant="outline"
+					size="sm"
+					className="h-8 rounded-lg bg-white px-2.5 text-[15px] font-normal shadow-none has-[>svg]:px-2.5"
+				>
 					{chapter.topics.length} topics
 					<ChevronDown className="text-muted-foreground" />
 				</Button>
@@ -55,11 +60,11 @@ function ChapterCard({ chapter }: { chapter: Chapter }) {
 
 	return (
 		<section aria-labelledby={`chapter-${chapter.id}`}>
-			<div className="flex flex-col gap-4 rounded-2xl border bg-card p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+			<div className="relative z-10 flex flex-col gap-4 rounded-xl border bg-card px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
 				<div className="min-w-0 space-y-3">
 					<h2
 						id={`chapter-${chapter.id}`}
-						className="text-lg leading-snug font-medium"
+						className="text-lg leading-7 tracking-[-0.01em]"
 					>
 						<span className="text-muted-foreground">
 							Chapter {chapterNumber(chapter)}:{' '}
@@ -68,20 +73,30 @@ function ChapterCard({ chapter }: { chapter: Chapter }) {
 					</h2>
 					<TopicsMenu chapter={chapter} />
 				</div>
-				<Button variant="pill" size="sm" asChild className="self-start">
+				<Button
+					variant="pill"
+					size="sm"
+					asChild
+					className="self-start text-xs font-medium sm:self-center"
+				>
 					<Link to={`/quizzes/${chapter.id}`}>Open reading</Link>
 				</Button>
 			</div>
-			<div className="mx-2 flex items-center justify-between gap-4 rounded-b-xl border border-t-0 bg-muted/60 px-5 py-4 sm:mx-3">
+			<div className="mx-2 flex items-center justify-between gap-4 rounded-b-xl border border-t-0 bg-[#fdfcf9] px-5 py-4">
 				<div>
-					<p className="text-sm font-medium">Chapter quiz</p>
+					<p className="font-medium">Chapter quiz</p>
 					<p className="text-sm text-muted-foreground">
 						{best
 							? `Best ${best.correct}/${best.total} · ${attempts.length} ${attempts.length === 1 ? 'attempt' : 'attempts'}`
 							: 'Not attempted yet'}
 					</p>
 				</div>
-				<Button variant="pill" size="sm" asChild>
+				<Button
+					variant="pill"
+					size="sm"
+					asChild
+					className="text-xs font-medium"
+				>
 					<Link to={scopePath(scope)}>
 						{best ? 'Retake quiz' : 'Start quiz'}
 					</Link>
@@ -98,18 +113,22 @@ export function OutlinePage() {
 	const trackChapters = chaptersForTrack(track);
 
 	return (
-		<PageContainer>
-			<p className="text-sm text-muted-foreground">
-				ANZCA {TRACK_LABEL[track]} exam
-			</p>
-			<h1 className="font-display text-3xl sm:text-4xl">Quizzes</h1>
-			<div className="mt-8 mb-4 flex items-center gap-2">
-				<h2 className="text-base font-medium">Chapters</h2>
-				<span className="rounded-md bg-muted px-1.5 text-sm text-muted-foreground tabular-nums">
+		<PageContainer wide>
+			<PageHeader title="Quizzes">
+				<Button variant="pill" asChild className="h-9 font-medium">
+					<Link to="/materials">Upload materials</Link>
+				</Button>
+			</PageHeader>
+			<div className="mt-6 mb-4 flex items-center gap-2">
+				<h2 className="text-[17px]">Chapters</h2>
+				<span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-xs font-medium tabular-nums">
 					{trackChapters.length}
 				</span>
+				<span className="rounded-full bg-chip px-2 py-0.5 text-xs text-chip-foreground">
+					ANZCA {TRACK_LABEL[track]}
+				</span>
 			</div>
-			<div className="space-y-6">
+			<div className="space-y-8">
 				{trackChapters.map((chapter) => (
 					<ChapterCard key={chapter.id} chapter={chapter} />
 				))}

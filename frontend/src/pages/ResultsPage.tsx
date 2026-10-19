@@ -2,6 +2,10 @@ import { PageContainer } from '@/components/PageContainer';
 import { ScoreRing } from '@/components/ScoreRing';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+	underlineTabList,
+	underlineTabTrigger,
+} from '@/components/underlineTabs';
 import { cn } from '@/lib/utils';
 import {
 	type TopicScore,
@@ -205,10 +209,16 @@ function QuestionReview({ attempt }: { attempt: QuizAttempt }) {
 				})}
 			</nav>
 			<Tabs defaultValue="question" className="gap-4 px-5 py-4">
-				<TabsList>
-					<TabsTrigger value="question">Question</TabsTrigger>
-					<TabsTrigger value="answer">Your answer</TabsTrigger>
-					<TabsTrigger value="explanation">Explanation</TabsTrigger>
+				<TabsList className={cn(underlineTabList, 'flex w-full justify-start')}>
+					<TabsTrigger value="question" className={underlineTabTrigger}>
+						Question
+					</TabsTrigger>
+					<TabsTrigger value="answer" className={underlineTabTrigger}>
+						Your answer
+					</TabsTrigger>
+					<TabsTrigger value="explanation" className={underlineTabTrigger}>
+						Explanation
+					</TabsTrigger>
 				</TabsList>
 				<TabsContent value="question" className="space-y-4">
 					<p className="leading-relaxed">{question.stem}</p>
@@ -269,7 +279,9 @@ export function ResultsPage() {
 	if (!attempt) {
 		return (
 			<PageContainer>
-				<h1 className="font-display text-3xl">Attempt not found</h1>
+				<h1 className="font-display text-[26px] leading-8">
+					Attempt not found
+				</h1>
 				<p className="mt-2 text-muted-foreground">
 					Attempts are saved in this browser only.
 				</p>
@@ -314,7 +326,7 @@ export function ResultsPage() {
 						{TRACK_LABEL[chapter.track]} ·{' '}
 						{attempt.scope.kind === 'chapter' ? 'Chapter quiz' : 'Topic quiz'}
 					</p>
-					<h1 className="font-display text-2xl sm:text-3xl">
+					<h1 className="font-display text-[22px] leading-8 sm:text-[26px]">
 						{scopeTitle(attempt.scope)}
 					</h1>
 					<p className="mt-1 text-sm text-muted-foreground">
