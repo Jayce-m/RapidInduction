@@ -2,6 +2,7 @@ import { AppShell } from '@/app/AppShell';
 import { PageContainer } from '@/components/PageContainer';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
+import { ReadingPage } from '@/pages/ReadingPage';
 import {
 	Link,
 	Navigate,
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
 		children: [
 			{ index: true, element: <Navigate to="/quizzes" replace /> },
 			{ path: 'quizzes', element: <OutlinePage /> },
+			{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
 			{ path: 'papers', element: <PapersPage /> },
 			{ path: '*', element: <NotFoundPage /> },
 		],
