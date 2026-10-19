@@ -1,5 +1,6 @@
 import { AppShell } from '@/app/AppShell';
 import { PageContainer } from '@/components/PageContainer';
+import { CreateExamPage } from '@/pages/exams/CreateExamPage';
 import { ExamsPage } from '@/pages/exams/ExamsPage';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
@@ -27,6 +28,7 @@ function NotFoundPage() {
 }
 
 const router = createBrowserRouter([
+	{ path: '/exams/new', element: <CreateExamPage /> },
 	{
 		path: '/',
 		element: <AppShell />,
