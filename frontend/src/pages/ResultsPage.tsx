@@ -125,7 +125,7 @@ function OptionRow({
 			<span className="flex-1 pt-0.5">{text}</span>
 			{isCorrect && (
 				<span className="pt-1 text-xs font-medium text-success">
-					{optionKey === chosen ? 'Your answer · correct' : 'Correct'}
+					{optionKey === chosen ? 'Your answer Â· correct' : 'Correct'}
 				</span>
 			)}
 			{isWrongChoice && (
