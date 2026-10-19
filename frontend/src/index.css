@@ -141,6 +141,7 @@
 @layer base {
   .font-display {
     font-variation-settings: 'SOFT' 100, 'WONK' 0;
+    font-weight: 360;
     letter-spacing: 0.02em;
   }
 }

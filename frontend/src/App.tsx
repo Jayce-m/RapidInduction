@@ -1,5 +1,6 @@
 import { AppShell } from '@/app/AppShell';
 import { PageContainer } from '@/components/PageContainer';
+import { ExamsPage } from '@/pages/exams/ExamsPage';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
 			{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
 			{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
 			{ path: 'quiz/:scope/:id', element: <QuizPage /> },
+			{ path: 'exams', element: <ExamsPage /> },
 			{ path: 'papers', element: <PapersPage /> },
 			{
 				path: 'tutor',
