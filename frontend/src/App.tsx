@@ -1,13 +1,14 @@
 import { AppShell } from '@/app/AppShell';
 import { PageContainer } from '@/components/PageContainer';
-import { CreateExamPage } from '@/pages/exams/CreateExamPage';
-import { ExamsPage } from '@/pages/exams/ExamsPage';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { QuizPage } from '@/pages/QuizPage';
 import { ReadingPage } from '@/pages/ReadingPage';
 import { ResultsPage } from '@/pages/ResultsPage';
+import { CreateExamPage } from '@/pages/exams/CreateExamPage';
+import { ExamsPage } from '@/pages/exams/ExamsPage';
+import { TakeExamPage } from '@/pages/exams/TakeExamPage';
 import { LayoutGrid, MessageCircle } from 'lucide-react';
 import {
 	Link,
@@ -29,6 +30,7 @@ function NotFoundPage() {
 
 const router = createBrowserRouter([
 	{ path: '/exams/new', element: <CreateExamPage /> },
+	{ path: '/exams/:id/take', element: <TakeExamPage /> },
 	{
 		path: '/',
 		element: <AppShell />,
