@@ -137,4 +137,14 @@ app.get('/api/generate-exam/random', async (c) => {
 
 app.use('/*', serveStatic({ root: 'frontend/dist' }));
 
+// Client routes such as /quizzes/airway have no file on disk, so serve the SPA
+// shell; API paths and missing assets still 404 instead of returning HTML.
+const spaShell = serveStatic({ path: 'frontend/dist/index.html' });
+app.get('*', (c, next) => {
+    if (c.req.path.startsWith('/api/') || /\.\w+$/.test(c.req.path)) {
+        return c.notFound();
+    }
+    return spaShell(c, next);
+});
+
 export default app;
