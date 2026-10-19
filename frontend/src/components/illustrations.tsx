@@ -142,19 +142,21 @@ export function StepsBadge({ className }: { className?: string }) {
 			aria-hidden="true"
 			className={cn('size-10 shrink-0', className)}
 		>
-			<ellipse cx="20" cy="35" rx="12" ry="3" fill="#ede9e6" />
+			<defs>
+				<linearGradient id="steps-face" x1="0" x2="0" y1="0" y2="1">
+					<stop offset="0%" stopColor="#a6463b" />
+					<stop offset="100%" stopColor="#6f241d" />
+				</linearGradient>
+			</defs>
+			<ellipse cx="20" cy="35" rx="15" ry="2.5" fill="#ede9e6" />
 			<path
-				d="M12 30 C 12 22, 28 24, 26 15 C 25 10, 18 9, 16 13"
-				fill="none"
-				stroke="#832f27"
-				strokeWidth="5"
-				strokeLinecap="round"
+				d="M6 34 V27 H14 V20 H22 V13 H30 V6 H34 V34 Z"
+				fill="url(#steps-face)"
 			/>
 			<path
-				d="M12 30 C 12 22, 28 24, 26 15"
-				fill="none"
-				stroke="#a6463b"
-				strokeWidth="1.5"
+				d="M6 27 H14 M14 20 H22 M22 13 H30 M30 6 H34"
+				stroke="#d98b80"
+				strokeWidth="1.2"
 				strokeLinecap="round"
 			/>
 		</svg>

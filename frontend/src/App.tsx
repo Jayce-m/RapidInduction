@@ -7,6 +7,7 @@ import { QuizPage } from '@/pages/QuizPage';
 import { ReadingPage } from '@/pages/ReadingPage';
 import { ResultsPage } from '@/pages/ResultsPage';
 import { CreateExamPage } from '@/pages/exams/CreateExamPage';
+import { ExamFeedbackPage } from '@/pages/exams/ExamFeedbackPage';
 import { ExamsPage } from '@/pages/exams/ExamsPage';
 import { TakeExamPage } from '@/pages/exams/TakeExamPage';
 import { LayoutGrid, MessageCircle } from 'lucide-react';
@@ -31,6 +32,7 @@ function NotFoundPage() {
 const router = createBrowserRouter([
 	{ path: '/exams/new', element: <CreateExamPage /> },
 	{ path: '/exams/:id/take', element: <TakeExamPage /> },
+	{ path: '/exams/:id/feedback', element: <ExamFeedbackPage /> },
 	{
 		path: '/',
 		element: <AppShell />,
