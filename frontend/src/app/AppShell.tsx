@@ -1,3 +1,9 @@
+import { AskTutorPill } from '@/components/AskTutorPill';
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useAttempts } from '@/study/attempts';
 import {
@@ -7,8 +13,19 @@ import {
 	parseScope,
 } from '@/study/content';
 import type { ExamTrack } from '@/study/types';
-import { FileText, ListChecks } from 'lucide-react';
-import type { ReactNode } from 'react';
+import {
+	Check,
+	ChevronsUpDown,
+	FileText,
+	GraduationCap,
+	LayoutGrid,
+	ListTree,
+	type LucideIcon,
+	MessageCircle,
+	PanelLeft,
+	Settings,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
 	Link,
 	Outlet,
@@ -19,10 +36,11 @@ import {
 } from 'react-router-dom';
 
 const TRACKS: ExamTrack[] = ['primary', 'final'];
+const COLLAPSED_KEY = 'ri.sidebar.collapsed';
 
 // The track is derived from whatever the current route shows, so deep links and
 // the back button never disagree with the switcher.
-function useActiveTrack(): ExamTrack | null {
+function useRouteTrack(): ExamTrack | null {
 	const { pathname } = useLocation();
 	const [search] = useSearchParams();
 	const matches = useMatches();
@@ -40,89 +58,277 @@ function useActiveTrack(): ExamTrack | null {
 	return search.get('track') === 'final' ? 'final' : 'primary';
 }
 
-function RailLink({
-	to,
-	active,
-	icon,
-	label,
-}: { to: string; active: boolean; icon: ReactNode; label: string }) {
+// Off the quiz routes there is no track in the URL, so the switcher keeps
+// showing the last course the user was looking at.
+function useActiveTrack(): ExamTrack {
+	const routeTrack = useRouteTrack();
+	const [lastTrack, setLastTrack] = useState<ExamTrack>('primary');
+	useEffect(() => {
+		if (routeTrack) setLastTrack(routeTrack);
+	}, [routeTrack]);
+	return routeTrack ?? lastTrack;
+}
+
+function useCollapsed(): [boolean, () => void] {
+	const [collapsed, setCollapsed] = useState(() => {
+		try {
+			return localStorage.getItem(COLLAPSED_KEY) === '1';
+		} catch {
+			return false;
+		}
+	});
+	const toggle = () => {
+		setCollapsed((value) => {
+			try {
+				localStorage.setItem(COLLAPSED_KEY, value ? '0' : '1');
+			} catch {}
+			return !value;
+		});
+	};
+	return [collapsed, toggle];
+}
+
+interface NavItem {
+	label: string;
+	to: (track: ExamTrack) => string;
+	match: (pathname: string) => boolean;
+	icon: LucideIcon;
+}
+
+const NAV: NavItem[] = [
+	{
+		label: 'Tutor',
+		to: () => '/tutor',
+		match: (p) => p.startsWith('/tutor'),
+		icon: MessageCircle,
+	},
+	{
+		label: 'Quizzes',
+		to: (track) => `/quizzes?track=${track}`,
+		match: (p) => p.startsWith('/quiz'),
+		icon: ListTree,
+	},
+	{
+		label: 'Exams',
+		to: () => '/exams',
+		match: (p) => p.startsWith('/exams'),
+		icon: GraduationCap,
+	},
+	{
+		label: 'Papers',
+		to: () => '/papers',
+		match: (p) => p.startsWith('/papers'),
+		icon: FileText,
+	},
+	{
+		label: 'Materials',
+		to: () => '/materials',
+		match: (p) => p.startsWith('/materials'),
+		icon: LayoutGrid,
+	},
+];
+
+function CourseSwitcher({
+	track,
+	compact,
+}: { track: ExamTrack; compact: boolean }) {
+	const [open, setOpen] = useState(false);
 	return (
-		<Link
-			to={to}
-			aria-current={active ? 'page' : undefined}
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger
+				aria-label={`Course: ANZCA ${TRACK_LABEL[track]}`}
+				className={cn(
+					'flex items-center gap-2 rounded-lg text-left transition-colors hover:bg-sidebar-accent',
+					compact ? 'size-10 justify-center' : 'w-full px-3.5 py-2',
+				)}
+			>
+				{!compact && (
+					<span className="min-w-0 flex-1 truncate font-display text-base">
+						ANZCA {TRACK_LABEL[track]}
+					</span>
+				)}
+				<span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#e7f0ec] font-display text-[11px] text-[#2f5e51]">
+					{track === 'primary' ? 'P' : 'F'}
+				</span>
+				{!compact && (
+					<ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+				)}
+			</PopoverTrigger>
+			<PopoverContent align="start" className="w-56 p-1">
+				<p className="px-3 pt-2 pb-1 text-xs text-muted-foreground">Course</p>
+				{TRACKS.map((option) => (
+					<Link
+						key={option}
+						to={`/quizzes?track=${option}`}
+						onClick={() => setOpen(false)}
+						aria-current={option === track ? 'true' : undefined}
+						className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-muted"
+					>
+						ANZCA {TRACK_LABEL[option]}
+						{option === track && <Check className="size-4 text-primary" />}
+					</Link>
+				))}
+			</PopoverContent>
+		</Popover>
+	);
+}
+
+function Sidebar({
+	track,
+	collapsed,
+	onToggle,
+}: { track: ExamTrack; collapsed: boolean; onToggle: () => void }) {
+	const { pathname } = useLocation();
+	return (
+		<nav
+			aria-label="Main"
 			className={cn(
-				'flex flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground md:w-16',
-				active && 'bg-sidebar-accent text-foreground',
+				'sticky top-0 hidden h-dvh shrink-0 flex-col pt-8 pb-5 transition-[width] duration-200 md:flex',
+				collapsed ? 'w-[72px] items-center px-3' : 'w-[262px] px-6',
 			)}
 		>
-			{icon}
-			<span className="hidden md:block">{label}</span>
-			<span className="sr-only md:hidden">{label}</span>
-		</Link>
-	);
-}
-
-function TrackSwitcher({ active }: { active: ExamTrack | null }) {
-	return (
-		<fieldset
-			aria-label="Exam"
-			className="flex gap-1 rounded-full border bg-card p-1 md:flex-col md:rounded-2xl"
-		>
-			{TRACKS.map((track) => (
-				<Link
-					key={track}
-					to={`/quizzes?track=${track}`}
-					aria-pressed={active === track}
-					className={cn(
-						'rounded-full px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground md:rounded-xl md:px-1.5 md:py-1.5 md:text-center md:text-[11px]',
-						active === track &&
-							'bg-primary text-primary-foreground hover:text-primary-foreground',
-					)}
-				>
-					{TRACK_LABEL[track]}
-				</Link>
-			))}
-		</fieldset>
-	);
-}
-
-export function AppShell() {
-	const { pathname } = useLocation();
-	const track = useActiveTrack();
-
-	return (
-		<div className="min-h-dvh md:flex">
-			<nav
-				aria-label="Main"
-				className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b bg-sidebar/95 px-3 backdrop-blur md:h-dvh md:w-20 md:flex-col md:gap-2 md:border-b-0 md:px-0 md:py-4"
+			<div
+				className={cn(
+					'flex items-center',
+					collapsed ? 'flex-col gap-4' : 'justify-between',
+				)}
 			>
 				<Link
 					to="/quizzes"
 					aria-label="RapidInduction home"
-					className="mr-2 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-display text-sm font-semibold text-primary-foreground md:mr-0 md:mb-3"
+					className="font-display text-[21px] leading-none tracking-normal"
 				>
-					Ri
+					{collapsed ? (
+						<span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm text-primary-foreground">
+							Ri
+						</span>
+					) : (
+						'RapidInduction'
+					)}
 				</Link>
-				<RailLink
-					to={track ? `/quizzes?track=${track}` : '/quizzes'}
-					active={pathname.startsWith('/quiz')}
-					icon={<ListChecks className="size-5" />}
-					label="Quizzes"
-				/>
-				<RailLink
-					to="/papers"
-					active={pathname.startsWith('/papers')}
-					icon={<FileText className="size-5" />}
-					label="Papers"
-				/>
-				<div className="ml-auto md:mt-auto md:ml-0">
-					<TrackSwitcher active={track} />
-				</div>
-			</nav>
-			<main className="min-w-0 flex-1 md:py-2 md:pr-2">
-				<div className="min-h-[calc(100dvh-3.5rem)] bg-card md:min-h-[calc(100dvh-1rem)] md:rounded-2xl md:border">
+				<button
+					type="button"
+					onClick={onToggle}
+					aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+					aria-expanded={!collapsed}
+					className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+				>
+					<PanelLeft className="size-4" />
+				</button>
+			</div>
+
+			<div
+				className={cn('mt-7 border-b pb-3', collapsed ? 'w-full' : '-mx-px')}
+			>
+				<CourseSwitcher track={track} compact={collapsed} />
+			</div>
+
+			<ul className={cn('mt-4 space-y-1', collapsed && 'w-full')}>
+				{NAV.map(({ label, to, match, icon: Icon }) => {
+					const active = match(pathname);
+					return (
+						<li key={label}>
+							<Link
+								to={to(track)}
+								aria-current={active ? 'page' : undefined}
+								title={collapsed ? label : undefined}
+								className={cn(
+									'flex h-11 items-center gap-3 rounded-lg text-[15px] transition-colors hover:bg-sidebar-accent',
+									collapsed ? 'justify-center' : 'px-4',
+									active && 'bg-sidebar-accent',
+								)}
+							>
+								<Icon
+									className={cn(
+										'size-4 shrink-0 text-muted-foreground',
+										active && 'text-primary',
+									)}
+									strokeWidth={1.6}
+								/>
+								<span className={cn(collapsed && 'sr-only')}>{label}</span>
+							</Link>
+						</li>
+					);
+				})}
+			</ul>
+
+			<div
+				className={cn(
+					'mt-auto flex items-center gap-3',
+					collapsed && 'flex-col',
+				)}
+			>
+				<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#3c7d6f] text-[15px] text-white">
+					AT
+				</span>
+				{!collapsed && (
+					<span className="min-w-0 flex-1 truncate text-[15px] font-medium">
+						Dr A. Trainee
+					</span>
+				)}
+				<button
+					type="button"
+					aria-label="Settings"
+					className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent"
+				>
+					<Settings className="size-4" strokeWidth={1.6} />
+				</button>
+			</div>
+		</nav>
+	);
+}
+
+function TopBar({ track }: { track: ExamTrack }) {
+	const { pathname } = useLocation();
+	return (
+		<nav
+			aria-label="Main"
+			className="sticky top-0 z-40 flex h-14 items-center gap-0.5 border-b bg-sidebar/95 px-2 backdrop-blur md:hidden"
+		>
+			<Link
+				to="/quizzes"
+				aria-label="RapidInduction home"
+				className="mr-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-display text-sm text-primary-foreground"
+			>
+				Ri
+			</Link>
+			{NAV.map(({ label, to, match, icon: Icon }) => {
+				const active = match(pathname);
+				return (
+					<Link
+						key={label}
+						to={to(track)}
+						aria-current={active ? 'page' : undefined}
+						className={cn(
+							'flex size-10 items-center justify-center rounded-lg text-muted-foreground',
+							active && 'bg-sidebar-accent text-primary',
+						)}
+					>
+						<Icon className="size-[18px]" strokeWidth={1.6} />
+						<span className="sr-only">{label}</span>
+					</Link>
+				);
+			})}
+			<div className="ml-auto">
+				<CourseSwitcher track={track} compact />
+			</div>
+		</nav>
+	);
+}
+
+export function AppShell() {
+	const track = useActiveTrack();
+	const [collapsed, toggleCollapsed] = useCollapsed();
+
+	return (
+		<div className="min-h-dvh bg-background md:flex">
+			<Sidebar track={track} collapsed={collapsed} onToggle={toggleCollapsed} />
+			<TopBar track={track} />
+			<main className="relative min-w-0 flex-1 md:mt-2 md:mr-2">
+				<div className="min-h-[calc(100dvh-3.5rem)] bg-card md:min-h-[calc(100dvh-0.5rem)] md:rounded-t-xl md:shadow-panel">
 					<Outlet />
 				</div>
+				<AskTutorPill />
 			</main>
 			<ScrollRestoration />
 		</div>
