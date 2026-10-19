@@ -2,7 +2,9 @@ import { AppShell } from '@/app/AppShell';
 import { PageContainer } from '@/components/PageContainer';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
+import { QuizPage } from '@/pages/QuizPage';
 import { ReadingPage } from '@/pages/ReadingPage';
+import { ResultsPage } from '@/pages/ResultsPage';
 import {
 	Link,
 	Navigate,
@@ -29,6 +31,8 @@ const router = createBrowserRouter([
 			{ index: true, element: <Navigate to="/quizzes" replace /> },
 			{ path: 'quizzes', element: <OutlinePage /> },
 			{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
+			{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
+			{ path: 'quiz/:scope/:id', element: <QuizPage /> },
 			{ path: 'papers', element: <PapersPage /> },
 			{ path: '*', element: <NotFoundPage /> },
 		],
