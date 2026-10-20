@@ -1,0 +1,239 @@
+---
+import { SIGNUP_URL } from '../config';
+import { pricing } from '../content';
+import Kicker from './Kicker.astro';
+
+const { title, resit, plan } = pricing;
+const aud = (n: number) => `$${n.toLocaleString('en-AU')}`;
+---
+
+<section id="pricing" class="px-4 py-24 sm:px-8">
+	<div class="mx-auto max-w-[1216px]">
+		<Kicker class="justify-center">{pricing.kicker}</Kicker>
+		<h2
+			class="mt-3 text-center font-display text-[26px] leading-[38px] text-balance sm:text-[30px]"
+		>
+			{title.before}<span class="underline-scribble">{title.emphasis}</span>{
+				title.middle
+			}<span class="underline-scribble">{title.price}</span>{title.after}
+		</h2>
+		<p
+			class="mx-auto mt-4 max-w-[640px] text-center text-[16px] leading-6 text-muted-foreground"
+		>
+			{pricing.body}
+		</p>
+
+		<div
+			class="mx-auto mt-14 grid max-w-[1088px] gap-10 rounded-2xl border bg-[#faf8f5] p-5 sm:p-8 lg:grid-cols-2"
+		>
+			<div class="flex flex-col" data-resit>
+				<div class="flex items-center gap-4 border-b border-dashed pb-6">
+					<span
+						class="flex size-10 items-center justify-center rounded-lg bg-white shadow-pill font-display text-lg text-primary"
+						aria-hidden="true">$</span
+					>
+					<div>
+						<p class="text-[16px] font-medium">{resit.label}</p>
+						<p class="text-[15px] text-muted-foreground">{resit.hint}</p>
+					</div>
+				</div>
+
+				<div class="flex flex-1 flex-col justify-center py-10">
+					<div
+						class="mx-auto w-48 rounded-xl border bg-white px-4 py-3 text-center shadow-pill"
+						aria-live="polite"
+					>
+						<p class="font-display text-[28px] text-primary" data-cost>
+							{aud(resit.examFee)}
+						</p>
+						<p class="text-sm text-muted-foreground" data-months>
+							Exam fee, no delay
+						</p>
+					</div>
+					<label class="mt-8 block">
+						<span class="sr-only">Sittings until you pass</span>
+						<input
+							type="range"
+							min="1"
+							max={resit.maxSittings}
+							value="1"
+							step="1"
+							data-fee={resit.examFee}
+							data-months-per={resit.monthsPerSitting}
+							class="w-full accent-primary"
+						/>
+					</label>
+					<div class="mt-1 flex justify-between text-sm text-muted-foreground">
+						<span>First time</span>
+						<span>{resit.maxSittings} sittings</span>
+					</div>
+					<p class="mt-4 text-center font-display text-[18px]" data-sittings>
+						Pass on your first sitting
+					</p>
+				</div>
+
+				<p
+					class="border-t border-dashed pt-6 text-[16px] leading-6 tracking-tight"
+				>
+					{resit.summary}
+				</p>
+			</div>
+
+			<div class="group/billing flex flex-col items-center">
+				<fieldset
+					class="inline-flex rounded-full border bg-secondary p-1 text-[15px]"
+				>
+					<legend class="sr-only">Billing period</legend>
+					<label
+						class="cursor-pointer rounded-full px-4 py-1.5 text-muted-foreground has-[:checked]:bg-white has-[:checked]:text-foreground has-[:checked]:shadow-pill has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40"
+					>
+						<input
+							type="radio"
+							name="billing"
+							value="annual"
+							checked
+							class="sr-only"
+						/>
+						Annual
+					</label>
+					<label
+						class="cursor-pointer rounded-full px-4 py-1.5 text-muted-foreground has-[:checked]:bg-white has-[:checked]:text-foreground has-[:checked]:shadow-pill has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40"
+					>
+						<input
+							type="radio"
+							name="billing"
+							value="monthly"
+							id="billing-monthly"
+							class="sr-only"
+						/>
+						Monthly
+					</label>
+				</fieldset>
+
+				<div
+					class="mt-6 w-full overflow-hidden rounded-2xl border bg-[#f6f2ed]"
+				>
+					<p class="px-5 py-4 text-[15px] font-medium">{plan.heading}</p>
+					<div class="rounded-t-2xl border-t bg-card p-5">
+						<div class="group-has-[#billing-monthly:checked]/billing:hidden">
+							<p class="text-[15px] text-muted-foreground line-through">
+								{aud(plan.standardMonthly)}/mo standard
+							</p>
+							<p class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+								<span class="font-display text-[38px] leading-none"
+									>{aud(plan.annualMonthly)}</span
+								>
+								<span class="text-muted-foreground">/ month</span>
+								<span
+									class="rounded-full border border-[#cfe5dc] bg-[#e9f4f0] px-3 py-0.5 text-sm text-[#2f7a65]"
+									>{plan.saving}</span
+								>
+							</p>
+							<p class="mt-2 text-sm text-muted-foreground">
+								Billed yearly · {aud(plan.annualTotal)}/yr
+							</p>
+						</div>
+						<div
+							class="hidden group-has-[#billing-monthly:checked]/billing:block"
+						>
+							<p class="text-[15px] text-transparent select-none" aria-hidden="true">
+								.
+							</p>
+							<p class="mt-2 flex items-center gap-2">
+								<span class="font-display text-[38px] leading-none"
+									>{aud(plan.standardMonthly)}</span
+								>
+								<span class="text-muted-foreground">/ month</span>
+							</p>
+							<p class="mt-2 text-sm text-muted-foreground">
+								Billed monthly · cancel any time
+							</p>
+						</div>
+
+						<ul class="mt-6 space-y-3 text-sm">
+							{
+								plan.features.map((feature) => (
+									<li class="flex gap-3">
+										<svg
+											viewBox="0 0 16 16"
+											class="mt-0.5 size-4 shrink-0 text-primary"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.6"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											aria-hidden="true"
+										>
+											<path d="m3 8.5 3 3 7-7" />
+										</svg>
+										<span class="text-muted-foreground">
+											{'lead' in feature && feature.lead}
+											<strong class="font-medium text-foreground">
+												{feature.strong}
+											</strong>
+											{'rest' in feature && feature.rest}
+										</span>
+									</li>
+								))
+							}
+						</ul>
+
+						<div
+							class="mt-6 flex gap-3 rounded-xl border border-[#efe0bf] bg-[#fdf8ec] p-4"
+						>
+							<svg
+								viewBox="0 0 20 20"
+								class="mt-0.5 size-5 shrink-0 text-[#8a6d2b]"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M10 2.5 4 5v4.5c0 3.8 2.6 6.7 6 8 3.4-1.3 6-4.2 6-8V5l-6-2.5Z"
+								></path>
+								<path d="m7.5 10 1.8 1.8 3.4-3.6" stroke-linecap="round"></path>
+							</svg>
+							<p class="text-sm">
+								<span class="block font-medium text-[#8a6d2b]"
+									>{plan.guarantee.title}</span
+								>
+								{plan.guarantee.body}
+							</p>
+						</div>
+
+						<a
+							href={SIGNUP_URL}
+							class="mt-6 flex h-12 items-center justify-center rounded-xl border border-primary-border bg-primary text-[18px] text-primary-foreground shadow-primary-button transition hover:bg-primary-border"
+						>
+							Get started
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	for (const root of document.querySelectorAll<HTMLElement>('[data-resit]')) {
+		const input = root.querySelector<HTMLInputElement>('input[type=range]');
+		const cost = root.querySelector('[data-cost]');
+		const months = root.querySelector('[data-months]');
+		const sittings = root.querySelector('[data-sittings]');
+		if (!input || !cost || !months || !sittings) continue;
+		const fee = Number(input.dataset.fee);
+		const monthsPer = Number(input.dataset.monthsPer);
+		const render = () => {
+			const n = Number(input.value);
+			const delay = (n - 1) * monthsPer;
+			cost.textContent = `$${(n * fee).toLocaleString('en-AU')}`;
+			months.textContent =
+				delay === 0 ? 'Exam fee, no delay' : `In fees, plus ${delay} months`;
+			sittings.textContent =
+				n === 1 ? 'Pass on your first sitting' : `Pass on sitting ${n}`;
+		};
+		input.addEventListener('input', render);
+		render();
+	}
+</script>

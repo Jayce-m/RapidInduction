@@ -1,0 +1,49 @@
+---
+import { finalCta } from '../content';
+import CtaButton from './CtaButton.astro';
+import Mark from './Mark.astro';
+---
+
+<section class="px-4 pt-12 pb-24 sm:px-8">
+	<div
+		class="relative mx-auto grid max-w-[1216px] overflow-hidden rounded-2xl bg-[radial-gradient(90%_120%_at_0%_0%,#86a07f,#6c8664_55%,#647d5d)] md:grid-cols-2"
+	>
+		<svg
+			viewBox="0 0 420 260"
+			class="h-56 w-full md:h-full"
+			aria-hidden="true"
+		>
+			<rect x="70" y="40" width="260" height="170" rx="16" fill="#2b2f2c"></rect>
+			<rect x="82" y="52" width="236" height="146" rx="8" fill="#151816"></rect>
+			<path
+				d="M92 92h40l6-16 8 34 6-18h40l6-16 8 34 6-18h40l6-16 8 34 6-18h40"
+				fill="none"
+				stroke="#7fe0a8"
+				stroke-width="2.5"
+				stroke-linejoin="round"></path>
+			<path
+				d="M92 160h18l7-30h44l4 6 4 24h18l7-30h44l4 6 4 24h18l7-30h44"
+				fill="none"
+				stroke="#f5d36b"
+				stroke-width="2.5"
+				stroke-linejoin="round"></path>
+			<text x="282" y="76" fill="#7fe0a8" font-size="20" font-family="Inter">72</text>
+			<text x="282" y="186" fill="#f5d36b" font-size="16" font-family="Inter">38</text>
+			<rect x="180" y="210" width="40" height="34" fill="#2b2f2c"></rect>
+			<rect x="140" y="240" width="120" height="10" rx="5" fill="#2b2f2c"></rect>
+		</svg>
+		<div class="px-6 pb-10 md:px-0 md:py-12 md:pr-10">
+			<p
+				class="flex items-center gap-2 font-display text-[18px] text-[#f5e3b8]"
+			>
+				<Mark class="h-4 w-5" />
+				{finalCta.kicker}
+			</p>
+			<h2 class="mt-3 font-display text-[30px] leading-[38px] text-white">
+				{finalCta.title}
+			</h2>
+			<p class="mt-3 text-[16px] text-white/85">{finalCta.body}</p>
+			<CtaButton class="mt-8 h-9! px-6! text-[15px]!" />
+		</div>
+	</div>
+</section>

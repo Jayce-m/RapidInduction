@@ -1,0 +1,61 @@
+---
+import { SITE_DESCRIPTION, SITE_NAME } from '../config';
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+	structuredData?: object[];
+	noindex?: boolean;
+}
+
+const {
+	title = `${SITE_NAME} | AI study partner for the ANZCA Primary and Final`,
+	description = SITE_DESCRIPTION,
+	structuredData = [],
+	noindex = false,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/favicon.png', Astro.site);
+---
+
+<!doctype html>
+<html lang="en-AU">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		{noindex && <meta name="robots" content="noindex" />}
+		<meta name="theme-color" content="#fefbf8" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={SITE_NAME} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={ogImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..600,0..100,0..1&family=Inter:wght@300..600&display=swap"
+		/>
+		{
+			structuredData.map((data) => (
+				<script type="application/ld+json" set:html={JSON.stringify(data)} />
+			))
+		}
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>

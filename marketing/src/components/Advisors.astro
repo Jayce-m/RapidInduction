@@ -1,0 +1,41 @@
+---
+import { advisors } from '../content';
+import CtaButton from './CtaButton.astro';
+import Kicker from './Kicker.astro';
+---
+
+<section class="px-4 py-24 sm:px-8">
+	<div class="mx-auto max-w-[1216px]">
+		<Kicker>{advisors.kicker}</Kicker>
+		<h2
+			class="mt-3 font-display text-[26px] leading-[34px] sm:text-[30px] sm:leading-[38px]"
+		>
+			{advisors.title}
+		</h2>
+		<p class="mt-4 max-w-[680px] text-[16px] leading-6 text-muted-foreground">
+			{advisors.body}
+		</p>
+
+		<ul class="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4">
+			{
+				advisors.people.map((person) => (
+					<li>
+						<div class="flex aspect-square items-center justify-center rounded-xl bg-[radial-gradient(90%_90%_at_30%_20%,#a9a6a2,#77736f)]">
+							<span class="font-display text-[56px] text-white/80">
+								{person.initials}
+							</span>
+						</div>
+						<p class="mt-4 text-[17px] tracking-tight">
+							{person.name}
+							<span class="text-[#8a6d2b]">, {person.credentials}</span>
+						</p>
+						<p class="mt-2 text-[15px] leading-[22px] text-muted-foreground">
+							{person.role}
+						</p>
+					</li>
+				))
+			}
+		</ul>
+		<div class="mt-8 text-center"><CtaButton /></div>
+	</div>
+</section>

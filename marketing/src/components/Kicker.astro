@@ -1,0 +1,18 @@
+---
+import Mark from './Mark.astro';
+
+interface Props {
+	class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<p
+	class:list={[
+		'flex items-center gap-2 font-display text-[18px] leading-[26px] text-primary',
+		className,
+	]}
+>
+	<Mark class="h-4 w-5 shrink-0" />
+	<slot />
+</p>

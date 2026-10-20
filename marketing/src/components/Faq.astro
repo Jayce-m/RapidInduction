@@ -1,0 +1,49 @@
+---
+import { faq } from '../content';
+import Kicker from './Kicker.astro';
+---
+
+<section id="faq" class="px-4 py-24 sm:px-8">
+	<div class="mx-auto grid max-w-[1216px] gap-10 lg:grid-cols-[400px_1fr] lg:gap-16">
+		<div>
+			<Kicker>{faq.kicker}</Kicker>
+			<h2
+				class="mt-3 font-display text-[26px] leading-[34px] sm:text-[30px] sm:leading-[38px]"
+			>
+				{faq.title}
+			</h2>
+		</div>
+		<div class="space-y-3">
+			{
+				faq.items.map((item, i) => (
+					<details
+						name="faq"
+						open={i === 0}
+						class="group rounded-xl border bg-card open:bg-[#f9f6f3]"
+					>
+						<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-6 text-[17px] tracking-tight">
+							<h3>{item.question}</h3>
+							<svg
+								viewBox="0 0 16 16"
+								class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="m4 6 4 4 4-4" />
+							</svg>
+						</summary>
+						<div class="space-y-5 px-6 pb-6 text-[16px] leading-6 tracking-tight">
+							{item.answer.map((paragraph) => (
+								<p>{paragraph}</p>
+							))}
+						</div>
+					</details>
+				))
+			}
+		</div>
+	</div>
+</section>

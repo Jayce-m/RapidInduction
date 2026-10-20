@@ -1,0 +1,142 @@
+---
+import { marking } from '../content';
+import CtaButton from './CtaButton.astro';
+import Kicker from './Kicker.astro';
+
+const { sample } = marking;
+const circumference = 2 * Math.PI * 54;
+const filled = (sample.score / sample.max) * circumference;
+---
+
+<section class="px-4 py-24 sm:px-8">
+	<div class="mx-auto max-w-[1216px]">
+		<Kicker class="justify-center">{marking.kicker}</Kicker>
+		<h2
+			class="mt-3 text-center font-display text-[26px] leading-[34px] sm:text-[30px] sm:leading-[38px]"
+		>
+			{marking.title}
+		</h2>
+		<p
+			class="mx-auto mt-4 max-w-[620px] text-center text-[16px] leading-6 text-muted-foreground"
+		>
+			{marking.body}
+		</p>
+
+		<div
+			class="mt-14 grid gap-10 rounded-2xl border bg-card p-6 sm:p-8 lg:grid-cols-2 lg:gap-12"
+		>
+			<div class="flex flex-col">
+				<div
+					class="flex flex-1 flex-col items-center justify-center rounded-xl bg-[radial-gradient(70%_60%_at_50%_80%,#f1e2c4_0%,transparent_75%)] py-10"
+				>
+					<p class="text-xs tracking-wide text-muted-foreground uppercase">
+						{sample.label}
+					</p>
+					<p class="mt-1 max-w-xs text-center font-display text-[18px]">
+						{sample.question}
+					</p>
+					<svg
+						viewBox="0 0 128 128"
+						class="mt-8 size-40"
+						role="img"
+						aria-label={`Scored ${sample.score} out of ${sample.max}`}
+					>
+						<circle
+							cx="64"
+							cy="64"
+							r="54"
+							fill="#fffefd"
+							stroke="#ede9e6"
+							stroke-width="8"></circle>
+						<circle
+							cx="64"
+							cy="64"
+							r="54"
+							fill="none"
+							stroke="#d2a24f"
+							stroke-width="8"
+							stroke-linecap="round"
+							stroke-dasharray={`${filled} ${circumference}`}
+							transform="rotate(-90 64 64)"></circle>
+						<text
+							x="64"
+							y="70"
+							text-anchor="middle"
+							class="fill-foreground font-display text-[30px]"
+							>{sample.score}</text
+						>
+						<text
+							x="64"
+							y="90"
+							text-anchor="middle"
+							class="fill-muted-foreground text-[11px]"
+							>out of {sample.max}</text
+						>
+					</svg>
+				</div>
+				<div
+					class="mt-6 flex items-start gap-3 rounded-xl border bg-[linear-gradient(90deg,#fdf6f3,#fbf3ea)] p-5"
+				>
+					<span
+						class="flex size-7 shrink-0 items-center justify-center rounded-full border bg-white text-primary"
+						aria-hidden="true"
+					>
+						<svg
+							viewBox="0 0 16 16"
+							class="size-3.5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"><path d="m3.5 8.5 3 3 6-7"></path></svg
+						>
+					</span>
+					<p class="text-[16px] leading-6">
+						<span class="block text-primary">{marking.callout.title}</span>
+						{marking.callout.body}
+					</p>
+				</div>
+			</div>
+
+			<div class="flex flex-col justify-center">
+				<ul class="space-y-6">
+					{
+						marking.rubric.map((line, i) => (
+							<li>
+								<div class="flex items-baseline justify-between gap-4">
+									<span class="text-[16px]">{line.label}</span>
+									<span
+										class:list={[
+											'font-display text-[28px] leading-none',
+											i === 0 ? 'text-primary' : 'text-muted-foreground',
+										]}
+									>
+										{line.earned}
+										<span class="text-[15px]">/{line.max}</span>
+									</span>
+								</div>
+								<div class="mt-2 h-4 overflow-hidden rounded-full border bg-secondary">
+									<div
+										class:list={[
+											'h-full rounded-full',
+											line.earned === line.max
+												? 'bg-primary'
+												: 'bg-[#d5cbc4]',
+										]}
+										style={{ width: `${(line.earned / line.max) * 100}%` }}
+									/>
+								</div>
+							</li>
+						))
+					}
+				</ul>
+				<p
+					class="mt-8 border-t border-dashed pt-5 text-[13px] leading-5 text-muted-foreground"
+				>
+					{marking.footnote}
+				</p>
+			</div>
+		</div>
+		<div class="mt-12 text-center"><CtaButton /></div>
+	</div>
+</section>

@@ -1,0 +1,72 @@
+---
+import { results } from '../content';
+import Kicker from './Kicker.astro';
+import Mark from './Mark.astro';
+---
+
+<section class="py-24">
+	<div class="mx-auto max-w-[1216px] px-4 sm:px-6">
+		<Kicker>{results.kicker}</Kicker>
+		<h2
+			class="mt-3 font-display text-[26px] leading-[34px] sm:text-[30px] sm:leading-[38px]"
+		>
+			{results.title}
+		</h2>
+	</div>
+
+	<ul
+		class="mt-12 flex snap-x snap-mandatory gap-8 overflow-x-auto scroll-px-4 px-4 pb-4 [scrollbar-width:none] sm:scroll-px-[max(1.5rem,calc((100vw-1216px)/2))] sm:px-[max(1.5rem,calc((100vw-1216px)/2))]"
+		aria-label="Trainee results"
+	>
+		{
+			results.cards.map((card) => (
+				<li class="shrink-0 snap-start">
+					{card.kind === 'stat' && (
+						<div class="flex h-[320px] w-[250px] flex-col items-center justify-end rounded-t-full bg-[radial-gradient(80%_70%_at_50%_30%,#8a8580,#3b3633)] px-6 pb-12 text-center text-white">
+							<span class="font-display text-[64px] leading-none tracking-tight">
+								{card.value}
+							</span>
+							<span class="mt-3 text-[16px] leading-5">{card.label}</span>
+						</div>
+					)}
+					{card.kind === 'quote' && (
+						<figure class="w-[250px]">
+							<div
+								class:list={[
+									'relative flex h-[320px] items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br',
+									card.tone,
+								]}
+							>
+								<span class="font-display text-[120px] leading-none text-white/70">
+									{card.name[0]}
+								</span>
+								<span class="absolute top-4 right-4 rounded-full bg-black/25 px-3 py-1 text-xs text-white backdrop-blur">
+									Trainee story
+								</span>
+							</div>
+							<blockquote class="mt-4 text-[15px] leading-5">
+								{card.quote}
+							</blockquote>
+							<figcaption class="mt-3 font-display text-[13px] text-muted-foreground">
+								~ {card.name}
+							</figcaption>
+						</figure>
+					)}
+					{card.kind === 'mission' && (
+						<div class="flex h-[320px] w-[310px] flex-col rounded-t-[80px] rounded-b-[60px] bg-[#38463a] text-center text-white">
+							<p class="px-8 pt-10 text-[17px] leading-6 tracking-tight">
+								“{card.quote}”
+							</p>
+							<div class="mt-auto flex flex-col items-center gap-4 rounded-b-[60px] bg-[#55665a] px-6 pt-6 pb-9">
+								<Mark class="h-6 w-9 text-white/80" />
+								<span class="text-[16px] underline decoration-dotted decoration-1 underline-offset-4">
+									{card.link.label}
+								</span>
+							</div>
+						</div>
+					)}
+				</li>
+			))
+		}
+	</ul>
+</section>

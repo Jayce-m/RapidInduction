@@ -1,0 +1,86 @@
+---
+import { APP_URL } from '../config';
+import { announcement, nav } from '../content';
+import Mark from './Mark.astro';
+---
+
+<header class="sticky top-0 z-40">
+	<a
+		href={announcement.href}
+		class="block truncate bg-[linear-gradient(90deg,#fdf6ee,#fbefe2_50%,#fdf6ee)] px-4 py-2.5 text-center text-sm tracking-tight text-[#6b5118] underline decoration-1 underline-offset-4 hover:text-primary"
+	>
+		{announcement.label} →
+	</a>
+	<div class="border-b border-transparent bg-background/85 backdrop-blur-md">
+		<div
+			class="mx-auto flex h-[72px] max-w-[1216px] items-center gap-10 px-4 sm:px-6"
+		>
+			<a
+				href="/"
+				class="flex items-center gap-2 font-display text-[21px] leading-none sm:text-[24px]"
+				aria-label="RapidInduction home"
+			>
+				<Mark class="h-5 w-7 text-primary" />
+				RapidInduction
+			</a>
+			<nav aria-label="Main" class="hidden gap-8 text-[16px] md:flex">
+				{
+					nav.map((item) => (
+						<a
+							href={item.href}
+							class="text-foreground/80 transition-colors hover:text-primary"
+						>
+							{item.label}
+						</a>
+					))
+				}
+			</nav>
+			<a
+				href={APP_URL}
+				class="ml-auto hidden h-9 items-center rounded-full bg-white px-5 text-sm shadow-pill transition-colors hover:bg-muted md:inline-flex"
+			>
+				Log in
+			</a>
+			<details class="group relative ml-auto md:hidden">
+				<summary
+					class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full hover:bg-muted"
+					aria-label="Menu"
+				>
+					<svg
+						viewBox="0 0 20 20"
+						class="size-5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.5"
+						stroke-linecap="round"
+						aria-hidden="true"
+					>
+						<path
+							class="group-open:hidden"
+							d="M3 6h14M3 10h14M3 14h14"></path>
+						<path class="hidden group-open:block" d="m5 5 10 10M15 5 5 15"
+						></path>
+					</svg>
+				</summary>
+				<nav
+					aria-label="Mobile"
+					class="absolute top-12 right-0 flex w-60 flex-col rounded-xl border bg-card p-2 shadow-raised"
+				>
+					{
+						nav.map((item) => (
+							<a href={item.href} class="rounded-lg px-3 py-2.5 hover:bg-muted">
+								{item.label}
+							</a>
+						))
+					}
+					<a
+						href={APP_URL}
+						class="mt-1 rounded-lg border-t px-3 py-2.5 text-primary hover:bg-muted"
+					>
+						Log in
+					</a>
+				</nav>
+			</details>
+		</div>
+	</div>
+</header>

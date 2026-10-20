@@ -1,0 +1,35 @@
+@import "tailwindcss";
+@import "../../../frontend/src/theme.css";
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-padding-top: 7rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    letter-spacing: 0.01em;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@utility highlight {
+  background: linear-gradient(transparent 12%, #fbf6c9 12%, #fbf6c9 92%, transparent 92%);
+}
+
+@utility underline-scribble {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: color-mix(in srgb, var(--primary) 70%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
+}

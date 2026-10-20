@@ -1,0 +1,46 @@
+---
+import { Image } from 'astro:assets';
+import { howItWorks } from '../content';
+import CtaButton from './CtaButton.astro';
+import Kicker from './Kicker.astro';
+
+const { title } = howItWorks;
+---
+
+<section id="how-it-works" class="px-4 py-24 sm:px-8">
+	<div class="mx-auto max-w-[1216px]">
+		<Kicker class="justify-center">{howItWorks.kicker}</Kicker>
+		<h2
+			class="mx-auto mt-3 max-w-[760px] text-center font-display text-[26px] leading-[34px] sm:text-[30px] sm:leading-[38px]"
+		>
+			{title.before}<span class="highlight">{title.highlight}</span>{
+				title.after
+			}
+		</h2>
+
+		<ol class="mt-16 grid gap-12 md:grid-cols-3 md:gap-12">
+			{
+				howItWorks.steps.map((step) => (
+					<li>
+						<div class="aspect-[373/292] overflow-hidden rounded-2xl border bg-[linear-gradient(160deg,#fbf3ea,#f6f2ed)] p-5 pr-0 pb-0">
+							<Image
+								src={step.image}
+								alt={step.imageAlt}
+								widths={[480, 800, 1200]}
+								sizes="(min-width: 768px) 360px, 92vw"
+								class="h-full w-full rounded-tl-lg object-cover object-left-top shadow-raised"
+							/>
+						</div>
+						<h3 class="mt-8 text-[20px] leading-7 tracking-tight">
+							{step.title}
+						</h3>
+						<p class="mt-3 text-[16px] leading-6 font-light text-muted-foreground">
+							{step.body}
+						</p>
+					</li>
+				))
+			}
+		</ol>
+		<div class="mt-16 text-center"><CtaButton /></div>
+	</div>
+</section>

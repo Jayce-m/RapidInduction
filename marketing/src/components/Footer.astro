@@ -1,0 +1,52 @@
+---
+import { footer } from '../content';
+import Mark from './Mark.astro';
+---
+
+<footer class="relative overflow-hidden pt-24">
+	<div
+		class="relative z-10 mx-auto grid max-w-[1152px] grid-cols-2 gap-10 px-6 sm:px-8 md:grid-cols-4"
+	>
+		{
+			footer.map((column) => (
+				<div>
+					<h2 class="font-display text-[20px]">{column.heading}</h2>
+					<ul class="mt-6 space-y-4 text-[16px] text-muted-foreground">
+						{column.links.map((link) => (
+							<li>
+								{link.href ? (
+									<a href={link.href} class="hover:text-primary">
+										{link.label}
+									</a>
+								) : (
+									link.label
+								)}
+							</li>
+						))}
+					</ul>
+				</div>
+			))
+		}
+	</div>
+
+	<div class="relative mt-16 h-[220px] sm:h-[420px]" aria-hidden="true">
+		<div
+			class="absolute inset-0 bg-[radial-gradient(70%_95%_at_50%_100%,#4a3b26_0%,#8a7650_40%,#e9dcc3_70%,transparent_88%)]"
+		>
+		</div>
+		<div
+			class="absolute inset-x-0 bottom-9 flex items-end justify-center gap-[2vw] px-4 text-[#c7b48a]/80"
+		>
+			<Mark class="h-[7vw] w-[10vw] min-w-10 shrink-0" />
+			<span
+				class="font-display text-[11vw] leading-[0.9] tracking-tight whitespace-nowrap"
+				>RapidInduction</span
+			>
+		</div>
+	</div>
+	<p
+		class="absolute right-0 bottom-3 left-0 z-10 text-center text-xs text-white/70"
+	>
+		© {new Date().getFullYear()} RapidInduction. Not affiliated with ANZCA.
+	</p>
+</footer>
