@@ -178,3 +178,169 @@ export function Signature({
 		</div>
 	);
 }
+
+export function Textbook({
+	title,
+	subtitle,
+	className,
+}: { title: string; subtitle: string; className?: string }) {
+	return (
+		<svg
+			viewBox="0 0 420 170"
+			preserveAspectRatio="xMaxYMid slice"
+			aria-hidden="true"
+			className={className}
+		>
+			<defs>
+				<linearGradient id="textbook-cover" x1="0" x2="1" y1="0" y2="1">
+					<stop offset="0%" stopColor="#7d2a23" />
+					<stop offset="100%" stopColor="#4d1712" />
+				</linearGradient>
+				<linearGradient id="textbook-paper" x1="0" x2="1">
+					<stop offset="0%" stopColor="#efe8de" />
+					<stop offset="100%" stopColor="#e2d8ca" />
+				</linearGradient>
+			</defs>
+			<rect width="420" height="170" fill="url(#textbook-paper)" />
+			{[22, 46, 70, 94, 118, 142].map((y, i) => (
+				<path
+					key={y}
+					d={`M250 ${y} q20 -8 40 0 t40 0 t40 0 t40 0`}
+					fill="none"
+					stroke="#b9ab98"
+					strokeWidth="1.1"
+					opacity={0.35 + (i % 3) * 0.1}
+					transform={`rotate(-14 330 ${y})`}
+				/>
+			))}
+			<g transform="rotate(-2 120 90)">
+				<rect
+					x="18"
+					y="-6"
+					width="210"
+					height="190"
+					fill="url(#textbook-cover)"
+				/>
+				<rect
+					x="18"
+					y="-6"
+					width="12"
+					height="190"
+					fill="#3d110d"
+					opacity="0.5"
+				/>
+				<rect
+					x="44"
+					y="22"
+					width="166"
+					height="126"
+					fill="none"
+					stroke="#c9a46a"
+					strokeWidth="1"
+					opacity="0.8"
+				/>
+				<rect
+					x="49"
+					y="27"
+					width="156"
+					height="116"
+					fill="none"
+					stroke="#c9a46a"
+					strokeWidth="0.6"
+					opacity="0.6"
+				/>
+				<path
+					d="M127 56 v18 M118 65 h18"
+					stroke="#e5c995"
+					strokeWidth="2.2"
+					strokeLinecap="round"
+				/>
+				<text
+					x="127"
+					y="98"
+					textAnchor="middle"
+					fill="#f1dcb6"
+					fontFamily="Fraunces, Georgia, serif"
+					fontSize="17"
+				>
+					{title}
+				</text>
+				<text
+					x="127"
+					y="114"
+					textAnchor="middle"
+					fill="#d8bf93"
+					fontFamily="Inter, sans-serif"
+					fontSize="7.5"
+					letterSpacing="1"
+				>
+					{subtitle}
+				</text>
+			</g>
+			<rect x="236" y="0" width="16" height="170" fill="#f7f2ec" />
+			<rect x="252" y="0" width="1" height="170" fill="#d8cdbf" />
+		</svg>
+	);
+}
+
+export function DocumentFolder({ className }: { className?: string }) {
+	return (
+		<svg
+			viewBox="0 0 140 110"
+			aria-hidden="true"
+			className={cn('h-[110px] w-[140px]', className)}
+		>
+			<g style={{ filter: 'drop-shadow(0 6px 8px rgba(83,63,13,0.08))' }}>
+				<path
+					d="M22 28 a4 4 0 0 1 4 -4 h26 l8 8 h54 a4 4 0 0 1 4 4 v60 a4 4 0 0 1 -4 4 h-88 a4 4 0 0 1 -4 -4 Z"
+					fill="#efebe7"
+				/>
+				<rect
+					x="34"
+					y="16"
+					width="48"
+					height="62"
+					rx="3"
+					fill="#fbf9f7"
+					stroke="#e4ded8"
+					transform="rotate(-9 58 47)"
+				/>
+				<rect
+					x="56"
+					y="12"
+					width="50"
+					height="64"
+					rx="3"
+					fill="#fff"
+					stroke="#e4ded8"
+					transform="rotate(7 81 44)"
+				/>
+				<rect x="66" y="26" width="3" height="16" rx="1.5" fill="#d2a24f" />
+				<rect x="71" y="30" width="3" height="12" rx="1.5" fill="#3e987f" />
+				<path
+					d="M90 20 l6 6 M96 20 l-6 6"
+					stroke="#be4848"
+					strokeWidth="1.6"
+					strokeLinecap="round"
+				/>
+				<path
+					d="M18 46 a4 4 0 0 1 4 -4 h96 a4 4 0 0 1 4 4 l-4 46 a4 4 0 0 1 -4 4 h-88 a4 4 0 0 1 -4 -4 Z"
+					fill="#f7f4f1"
+					stroke="#e8e3de"
+				/>
+			</g>
+			<g stroke="#cfc6bd" strokeWidth="1.1" strokeLinecap="round">
+				{[0, 30, 60, 90, 120, 150].map((angle) => (
+					<line
+						key={angle}
+						x1="70"
+						y1="61"
+						x2="70"
+						y2="77"
+						transform={`rotate(${angle} 70 69)`}
+					/>
+				))}
+			</g>
+		</svg>
+	);
+}

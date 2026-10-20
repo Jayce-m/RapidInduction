@@ -47,6 +47,7 @@
   --color-chip: var(--chip);
   --color-chip-foreground: var(--chip-foreground);
   --font-script: 'Mrs Saint Delafield', cursive;
+  --font-hand: 'Caveat', cursive;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
 }

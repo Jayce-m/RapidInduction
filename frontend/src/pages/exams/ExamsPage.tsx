@@ -3,6 +3,7 @@ import { Rosette } from '@/components/Rosette';
 import { PaperStack } from '@/components/illustrations';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { relativeTime } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { type ExamSummary, placeholderExams } from '@/placeholder/exams';
 import { ArrowDownUp, Trash2, X } from 'lucide-react';
@@ -17,18 +18,6 @@ export interface AccuracyPoint {
 const GHOST_POINTS: AccuracyPoint[] = [52, 60, 57, 68, 71, 78].map(
 	(score, i) => ({ date: String(i), score }),
 );
-
-const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-
-function relativeTime(iso: string): string {
-	const minutes = Math.round((Date.parse(iso) - Date.now()) / 60_000);
-	if (Math.abs(minutes) < 60) return `${Math.abs(minutes)}m ago`;
-	const hours = Math.round(minutes / 60);
-	if (Math.abs(hours) < 24) return `${Math.abs(hours)}h ago`;
-	const days = Math.round(hours / 24);
-	if (Math.abs(days) < 30) return RELATIVE.format(days, 'day');
-	return RELATIVE.format(Math.round(days / 30), 'month');
-}
 
 function AccuracyChart({ points }: { points: AccuracyPoint[] }) {
 	const last = points[points.length - 1];

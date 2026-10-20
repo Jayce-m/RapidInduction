@@ -1,5 +1,6 @@
 import { AppShell } from '@/app/AppShell';
 import { PageContainer } from '@/components/PageContainer';
+import { MaterialsPage } from '@/pages/MaterialsPage';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
@@ -10,7 +11,7 @@ import { CreateExamPage } from '@/pages/exams/CreateExamPage';
 import { ExamFeedbackPage } from '@/pages/exams/ExamFeedbackPage';
 import { ExamsPage } from '@/pages/exams/ExamsPage';
 import { TakeExamPage } from '@/pages/exams/TakeExamPage';
-import { LayoutGrid, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import {
 	Link,
 	Navigate,
@@ -55,17 +56,7 @@ const router = createBrowserRouter([
 					/>
 				),
 			},
-			{
-				path: 'materials',
-				element: (
-					<PlaceholderPage
-						title="Materials"
-						icon={LayoutGrid}
-						heading="No materials yet"
-						body="Upload lecture notes, guidelines and past papers to shape your outline, quizzes and exams."
-					/>
-				),
-			},
+			{ path: 'materials', element: <MaterialsPage /> },
 			{ path: '*', element: <NotFoundPage /> },
 		],
 	},
