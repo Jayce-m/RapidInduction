@@ -80,75 +80,114 @@ const aud = (n: number) => `$${n.toLocaleString('en-AU')}`;
 			</div>
 
 			<div class="group/billing flex flex-col items-center">
-				<fieldset
-					class="inline-flex rounded-full border bg-secondary p-1 text-[15px]"
-				>
-					<legend class="sr-only">Billing period</legend>
-					<label
-						class="cursor-pointer rounded-full px-4 py-1.5 text-muted-foreground has-[:checked]:bg-white has-[:checked]:text-foreground has-[:checked]:shadow-pill has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40"
+				<div class="relative pt-12 sm:pt-0">
+					<p
+						class="pointer-events-none absolute top-0 -left-2 z-10 flex w-max flex-col items-start text-[#5f9e82] opacity-0 transition-opacity duration-300 group-has-[#billing-monthly:checked]/billing:opacity-100 motion-reduce:transition-none sm:top-auto sm:right-[calc(100%-22px)] sm:bottom-[calc(50%-4px)] sm:left-auto sm:items-end"
+						aria-hidden="true"
 					>
-						<input
-							type="radio"
-							name="billing"
-							value="annual"
-							checked
-							class="sr-only"
-						/>
-						Annual
-					</label>
-					<label
-						class="cursor-pointer rounded-full px-4 py-1.5 text-muted-foreground has-[:checked]:bg-white has-[:checked]:text-foreground has-[:checked]:shadow-pill has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40"
+						<span class="-rotate-6 pl-4 font-hand sm:pr-7 sm:pl-0 text-[21px] leading-none"
+							>{plan.saving}</span
+						>
+						<svg
+							viewBox="0 0 64 36"
+							class="-mt-0.5 h-9 w-16"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path
+								pathLength="1"
+								class="transition-[stroke-dashoffset] delay-150 duration-500 ease-out [stroke-dasharray:1] [stroke-dashoffset:1] group-has-[#billing-monthly:checked]/billing:[stroke-dashoffset:0] motion-reduce:transition-none"
+								d="M8 3c-3 10 2 21 14 25 9 3 20 2 33-2M47 20.5l9.5 5-7.5 6.5"
+							></path>
+						</svg>
+					</p>
+					<fieldset
+						class="relative grid h-[38px] grid-cols-2 items-center rounded-full border bg-secondary p-[2px] text-[15px]"
 					>
-						<input
-							type="radio"
-							name="billing"
-							value="monthly"
-							id="billing-monthly"
-							class="sr-only"
-						/>
-						Monthly
-					</label>
-				</fieldset>
+						<legend class="sr-only">Billing period</legend>
+						<span
+							class="absolute inset-y-[2px] left-[2px] w-[calc(50%-2px)] rounded-full bg-white shadow-pill transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-has-[#billing-monthly:checked]/billing:translate-x-full motion-reduce:transition-none"
+							aria-hidden="true"></span>
+						<label
+							class="relative flex h-8 cursor-pointer items-center justify-center rounded-full px-4 text-muted-foreground transition-colors hover:text-foreground has-[:checked]:text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40"
+						>
+							<input
+								type="radio"
+								name="billing"
+								value="annual"
+								checked
+								class="sr-only"
+							/>
+							Annual
+						</label>
+						<label
+							class="relative flex h-8 cursor-pointer items-center justify-center rounded-full px-4 text-muted-foreground transition-colors hover:text-foreground has-[:checked]:text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring/40"
+						>
+							<input
+								type="radio"
+								name="billing"
+								value="monthly"
+								id="billing-monthly"
+								class="sr-only"
+							/>
+							Monthly
+						</label>
+					</fieldset>
+				</div>
 
 				<div
 					class="mt-6 w-full overflow-hidden rounded-2xl border bg-[#f6f2ed]"
 				>
-					<p class="px-5 py-4 text-[15px] font-medium">{plan.heading}</p>
+					<p class="grid px-5 py-4 text-[15px] font-medium">
+						<span
+							class="[grid-area:1/1] transition-[opacity,visibility] duration-300 group-has-[#billing-monthly:checked]/billing:invisible group-has-[#billing-monthly:checked]/billing:opacity-0"
+							>{plan.heading}</span
+						>
+						<span
+							class="invisible opacity-0 [grid-area:1/1] transition-[opacity,visibility] duration-300 group-has-[#billing-monthly:checked]/billing:visible group-has-[#billing-monthly:checked]/billing:opacity-100"
+							>{plan.headingMonthly}</span
+						>
+					</p>
 					<div class="rounded-t-2xl border-t bg-card p-5">
-						<div class="group-has-[#billing-monthly:checked]/billing:hidden">
-							<p class="text-[15px] text-muted-foreground line-through">
+						<div
+							class="grid grid-rows-[1fr] transition-[grid-template-rows,opacity] duration-300 ease-out group-has-[#billing-monthly:checked]/billing:grid-rows-[0fr] group-has-[#billing-monthly:checked]/billing:opacity-0 motion-reduce:transition-none"
+						>
+							<p
+								class="overflow-hidden pb-2 text-[15px] text-muted-foreground line-through"
+							>
 								{aud(plan.standardMonthly)}/mo standard
 							</p>
-							<p class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-								<span class="font-display text-[38px] leading-none"
+						</div>
+						<p class="flex flex-wrap items-center gap-x-2 gap-y-1">
+							<span class="grid font-display text-[38px] leading-none">
+								<span
+									class="[grid-area:1/1] transition-[opacity,transform,visibility] duration-300 ease-out group-has-[#billing-monthly:checked]/billing:invisible group-has-[#billing-monthly:checked]/billing:-translate-y-2 group-has-[#billing-monthly:checked]/billing:opacity-0 motion-reduce:transition-none"
 									>{aud(plan.annualMonthly)}</span
 								>
-								<span class="text-muted-foreground">/ month</span>
 								<span
-									class="rounded-full border border-[#cfe5dc] bg-[#e9f4f0] px-3 py-0.5 text-sm text-[#2f7a65]"
-									>{plan.saving}</span
-								>
-							</p>
-							<p class="mt-2 text-sm text-muted-foreground">
-								Billed yearly · {aud(plan.annualTotal)}/yr
-							</p>
-						</div>
-						<div
-							class="hidden group-has-[#billing-monthly:checked]/billing:block"
-						>
-							<p class="text-[15px] text-transparent select-none" aria-hidden="true">
-								.
-							</p>
-							<p class="mt-2 flex items-center gap-2">
-								<span class="font-display text-[38px] leading-none"
+									class="invisible translate-y-2 opacity-0 [grid-area:1/1] transition-[opacity,transform,visibility] duration-300 ease-out group-has-[#billing-monthly:checked]/billing:visible group-has-[#billing-monthly:checked]/billing:translate-y-0 group-has-[#billing-monthly:checked]/billing:opacity-100 motion-reduce:transition-none"
 									>{aud(plan.standardMonthly)}</span
 								>
-								<span class="text-muted-foreground">/ month</span>
-							</p>
-							<p class="mt-2 text-sm text-muted-foreground">
-								Billed monthly · cancel any time
-							</p>
-						</div>
+							</span>
+							<span class="text-muted-foreground">/ month</span>
+							<span
+								class="rounded-full border border-[#cfe5dc] bg-[#e9f4f0] px-3 py-0.5 text-sm text-[#2f7a65] transition-[opacity,scale,visibility] duration-200 group-has-[#billing-monthly:checked]/billing:invisible group-has-[#billing-monthly:checked]/billing:scale-90 group-has-[#billing-monthly:checked]/billing:opacity-0 motion-reduce:transition-none"
+								>{plan.saving}</span
+							>
+						</p>
+						<p class="mt-2 grid text-sm text-muted-foreground">
+							<span
+								class="[grid-area:1/1] transition-[opacity,visibility] duration-300 group-has-[#billing-monthly:checked]/billing:invisible group-has-[#billing-monthly:checked]/billing:opacity-0"
+								>Billed yearly · {aud(plan.annualTotal)}/yr</span
+							>
+							<span
+								class="invisible opacity-0 [grid-area:1/1] transition-[opacity,visibility] duration-300 group-has-[#billing-monthly:checked]/billing:visible group-has-[#billing-monthly:checked]/billing:opacity-100"
+								>Billed monthly · cancel any time</span
+							>
+						</p>
 
 						<ul class="mt-6 space-y-3 text-sm">
 							{

@@ -255,10 +255,11 @@ export const pricing = {
 	},
 	plan: {
 		heading: 'Primary and Final, all year.',
+		headingMonthly: 'Primary and Final, month to month.',
 		standardMonthly: 39,
 		annualMonthly: 29,
 		annualTotal: 348,
-		saving: 'Save 26% vs monthly',
+		saving: 'Save 25% vs monthly',
 		features: [
 			{ strong: 'Unlimited practice exams', rest: ' in the College style' },
 			{ strong: 'Live AI viva practice', rest: ' with follow-up questions' },
