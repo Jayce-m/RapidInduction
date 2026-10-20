@@ -58,11 +58,12 @@ function questionScore(
 	return response.kind === 'saq' ? response.score : 0;
 }
 
-function Hero({
+export function Hero({
 	name,
 	score,
 	tutorName,
-}: { name: string; score: number; tutorName: string }) {
+	kicker = 'RapidInduction Prepared Exam',
+}: { name: string; score: number; tutorName: string; kicker?: string }) {
 	return (
 		<div className="relative overflow-hidden rounded-xl bg-[linear-gradient(100deg,#f7f1ea_0%,#fbf8f4_35%,#ffffff_60%)] p-6">
 			<div className="flex flex-wrap items-center gap-6">
@@ -72,9 +73,7 @@ function Hero({
 					textClassName="text-[22px] -translate-y-px"
 				/>
 				<div className="min-w-0 flex-1">
-					<p className="mb-2 text-xs text-muted-foreground">
-						RapidInduction Prepared Exam
-					</p>
+					<p className="mb-2 text-xs text-muted-foreground">{kicker}</p>
 					<p className="font-display text-[20px] leading-7">{name}</p>
 				</div>
 				<Signature
@@ -87,7 +86,7 @@ function Hero({
 	);
 }
 
-function PointsColumn({
+export function PointsColumn({
 	title,
 	subtitle,
 	broken,

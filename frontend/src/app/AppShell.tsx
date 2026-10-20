@@ -22,6 +22,7 @@ import {
 	ListTree,
 	type LucideIcon,
 	MessageCircle,
+	Mic,
 	PanelLeft,
 	Settings,
 } from 'lucide-react';
@@ -113,6 +114,12 @@ const NAV: NavItem[] = [
 		to: () => '/exams',
 		match: (p) => p.startsWith('/exams'),
 		icon: GraduationCap,
+	},
+	{
+		label: 'Viva',
+		to: () => '/viva',
+		match: (p) => p.startsWith('/viva'),
+		icon: Mic,
 	},
 	{
 		label: 'Papers',

@@ -178,3 +178,44 @@
   75% { background-color: #caffbf; }
   100% { background-color: #9bf6ff; }
 }
+
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes orb-ripple {
+  0% { transform: scale(0.9); opacity: 0.55; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes orb-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+
+@utility animate-orb-breathe {
+  animation: orb-breathe 1.6s ease-in-out infinite;
+}
+
+@utility animate-orb-ripple {
+  animation: orb-ripple 1.8s ease-out infinite;
+}
+
+@utility animate-orb-spin {
+  animation: orb-spin 2.4s linear infinite;
+}
+
+@utility animate-wave-bar {
+  animation: wave-bar 0.9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-orb-breathe, .animate-orb-ripple, .animate-orb-spin, .animate-wave-bar {
+    animation: none;
+  }
+}

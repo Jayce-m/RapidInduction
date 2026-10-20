@@ -11,6 +11,10 @@ import { CreateExamPage } from '@/pages/exams/CreateExamPage';
 import { ExamFeedbackPage } from '@/pages/exams/ExamFeedbackPage';
 import { ExamsPage } from '@/pages/exams/ExamsPage';
 import { TakeExamPage } from '@/pages/exams/TakeExamPage';
+import { VivaFeedbackPage } from '@/pages/viva/VivaFeedbackPage';
+import { VivaLivePage } from '@/pages/viva/VivaLivePage';
+import { VivaPage } from '@/pages/viva/VivaPage';
+import { VivaSetupPage } from '@/pages/viva/VivaSetupPage';
 import { MessageCircle } from 'lucide-react';
 import {
 	Link,
@@ -34,6 +38,9 @@ const router = createBrowserRouter([
 	{ path: '/exams/new', element: <CreateExamPage /> },
 	{ path: '/exams/:id/take', element: <TakeExamPage /> },
 	{ path: '/exams/:id/feedback', element: <ExamFeedbackPage /> },
+	{ path: '/viva/new', element: <VivaSetupPage /> },
+	{ path: '/viva/:id/live', element: <VivaLivePage /> },
+	{ path: '/viva/:id/feedback', element: <VivaFeedbackPage /> },
 	{
 		path: '/',
 		element: <AppShell />,
@@ -44,6 +51,7 @@ const router = createBrowserRouter([
 			{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
 			{ path: 'quiz/:scope/:id', element: <QuizPage /> },
 			{ path: 'exams', element: <ExamsPage /> },
+			{ path: 'viva', element: <VivaPage /> },
 			{ path: 'papers', element: <PapersPage /> },
 			{
 				path: 'tutor',
