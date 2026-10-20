@@ -1,0 +1,120 @@
+/* Brand tokens shared by the app and the marketing site (marketing/src/styles/global.css). */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-caution: var(--caution);
+  --color-caution-foreground: var(--caution-foreground);
+  --color-primary-border: var(--primary-border);
+  --color-gold: var(--gold);
+  --color-chip: var(--chip);
+  --color-chip-foreground: var(--chip-foreground);
+  --font-script: 'Mrs Saint Delafield', cursive;
+  --font-hand: 'Caveat', cursive;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #fefbf8;
+  --foreground: #0f0102;
+  --card: #fffefd;
+  --card-foreground: #0f0102;
+  --popover: #fffefd;
+  --popover-foreground: #0f0102;
+  --primary: #832f27;
+  --primary-foreground: #ffffff;
+  --primary-border: #621d18;
+  --secondary: #f6f2ed;
+  --secondary-foreground: #1d1a18;
+  --muted: #f9f5f2;
+  --muted-foreground: #5d5a58;
+  --accent: #f6f2ed;
+  --accent-foreground: #0f0102;
+  --destructive: #be4848;
+  --border: #ede9e6;
+  --input: #e4dfdb;
+  --ring: #832f27;
+  --success: #3e987f;
+  --caution: #fef2f1;
+  --caution-foreground: #621d18;
+  --gold: #fed38f;
+  --chip: #fdf2f1;
+  --chip-foreground: #621d18;
+  --chart-1: #3e987f;
+  --chart-2: #832f27;
+  --chart-3: #d2a24f;
+  --chart-4: #5d5a58;
+  --chart-5: #ede9e6;
+  --sidebar: #fefbf8;
+  --sidebar-foreground: #0f0102;
+  --sidebar-primary: #832f27;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f6f2ed;
+  --sidebar-accent-foreground: #0f0102;
+  --sidebar-border: #ede9e6;
+  --sidebar-ring: #832f27;
+}
+
+/* Fraunces at full softness stands in for the rounded display serif of the reference design. */
+@layer base {
+  .font-display {
+    font-variation-settings: 'SOFT' 100, 'WONK' 0;
+    font-weight: 360;
+    letter-spacing: 0.02em;
+  }
+}
+
+@utility shadow-panel {
+  box-shadow: -6px 0 20px rgba(83, 63, 13, 0.03), 0 0 0 1px rgba(237, 233, 230, 0.3);
+}
+
+@utility shadow-primary-button {
+  box-shadow: 0 2px 8px rgba(131, 47, 39, 0.3), inset 0 3px 4px rgba(255, 255, 255, 0.2);
+}
+
+@utility shadow-raised {
+  box-shadow: 0 0 0.5px 0.5px rgba(0, 0, 0, 0.1), 0 1px 1px -0.5px rgba(0, 0, 0, 0.1), 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+}
+
+@utility shadow-soft {
+  box-shadow: 0 -4px 10px rgba(210, 162, 79, 0.05), 0 0 0 1px rgba(237, 233, 230, 1);
+}
+
+@utility shadow-pill {
+  box-shadow: 0 1px 2px rgba(83, 63, 13, 0.06), 0 0 0 1px rgba(237, 233, 230, 1);
+}
