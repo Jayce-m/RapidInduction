@@ -1,5 +1,5 @@
 ---
-import { APP_URL } from '../config';
+import { LOGIN_URL } from '../config';
 import { announcement, nav } from '../content';
 import Mark from './Mark.astro';
 ---
@@ -36,7 +36,7 @@ import Mark from './Mark.astro';
 				}
 			</nav>
 			<a
-				href={APP_URL}
+				href={LOGIN_URL}
 				class="ml-auto hidden h-9 items-center rounded-full bg-white px-5 text-sm shadow-pill transition-colors hover:bg-muted md:inline-flex"
 			>
 				Log in
@@ -74,7 +74,7 @@ import Mark from './Mark.astro';
 						))
 					}
 					<a
-						href={APP_URL}
+						href={LOGIN_URL}
 						class="mt-1 rounded-lg border-t px-3 py-2.5 text-primary hover:bg-muted"
 					>
 						Log in

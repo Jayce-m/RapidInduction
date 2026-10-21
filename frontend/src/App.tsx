@@ -1,5 +1,7 @@
 import { AppShell } from '@/app/AppShell';
+import { RequireAuth } from '@/app/RequireAuth';
 import { PageContainer } from '@/components/PageContainer';
+import { AuthPage } from '@/pages/AuthPage';
 import { MaterialsPage } from '@/pages/MaterialsPage';
 import { OutlinePage } from '@/pages/OutlinePage';
 import { PapersPage } from '@/pages/PapersPage';
@@ -35,37 +37,44 @@ function NotFoundPage() {
 }
 
 const router = createBrowserRouter([
-	{ path: '/exams/new', element: <CreateExamPage /> },
-	{ path: '/exams/:id/take', element: <TakeExamPage /> },
-	{ path: '/exams/:id/feedback', element: <ExamFeedbackPage /> },
-	{ path: '/viva/new', element: <VivaSetupPage /> },
-	{ path: '/viva/:id/live', element: <VivaLivePage /> },
-	{ path: '/viva/:id/feedback', element: <VivaFeedbackPage /> },
+	{ path: '/login', element: <AuthPage mode="login" /> },
+	{ path: '/signup', element: <AuthPage mode="signup" /> },
 	{
-		path: '/',
-		element: <AppShell />,
+		element: <RequireAuth />,
 		children: [
-			{ index: true, element: <Navigate to="/quizzes" replace /> },
-			{ path: 'quizzes', element: <OutlinePage /> },
-			{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
-			{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
-			{ path: 'quiz/:scope/:id', element: <QuizPage /> },
-			{ path: 'exams', element: <ExamsPage /> },
-			{ path: 'viva', element: <VivaPage /> },
-			{ path: 'papers', element: <PapersPage /> },
+			{ path: '/exams/new', element: <CreateExamPage /> },
+			{ path: '/exams/:id/take', element: <TakeExamPage /> },
+			{ path: '/exams/:id/feedback', element: <ExamFeedbackPage /> },
+			{ path: '/viva/new', element: <VivaSetupPage /> },
+			{ path: '/viva/:id/live', element: <VivaLivePage /> },
+			{ path: '/viva/:id/feedback', element: <VivaFeedbackPage /> },
 			{
-				path: 'tutor',
-				element: (
-					<PlaceholderPage
-						title="Tutor"
-						icon={MessageCircle}
-						heading="Your tutor is on the way"
-						body="Ask questions about any topic in the ANZCA curriculum and get answers grounded in your readings."
-					/>
-				),
+				path: '/',
+				element: <AppShell />,
+				children: [
+					{ index: true, element: <Navigate to="/quizzes" replace /> },
+					{ path: 'quizzes', element: <OutlinePage /> },
+					{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
+					{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
+					{ path: 'quiz/:scope/:id', element: <QuizPage /> },
+					{ path: 'exams', element: <ExamsPage /> },
+					{ path: 'viva', element: <VivaPage /> },
+					{ path: 'papers', element: <PapersPage /> },
+					{
+						path: 'tutor',
+						element: (
+							<PlaceholderPage
+								title="Tutor"
+								icon={MessageCircle}
+								heading="Your tutor is on the way"
+								body="Ask questions about any topic in the ANZCA curriculum and get answers grounded in your readings."
+							/>
+						),
+					},
+					{ path: 'materials', element: <MaterialsPage /> },
+					{ path: '*', element: <NotFoundPage /> },
+				],
 			},
-			{ path: 'materials', element: <MaterialsPage /> },
-			{ path: '*', element: <NotFoundPage /> },
 		],
 	},
 ]);

@@ -3,6 +3,7 @@ import { serveStatic } from 'hono/bun';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { and, asc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { auth } from './auth';
 import { db } from './db/db';
 import {
     coreConcepts,
@@ -24,6 +25,8 @@ const app = new Hono();
 
 app.use('*', logger());
 app.use('*', cors());
+
+app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 
 app.get('/api/generate-exam/total-questions', async (c) => {
     const count = await db.$count(questions);
@@ -140,7 +143,7 @@ app.use('/*', serveStatic({ root: 'frontend/dist' }));
 // Client routes such as /quizzes/airway have no file on disk, so serve the SPA
 // shell; API paths and missing assets still 404 instead of returning HTML.
 const spaShell = serveStatic({ path: 'frontend/dist/index.html' });
-app.get('*', (c, next) => {
+app.get('*', async (c, next) => {
     if (c.req.path.startsWith('/api/') || /\.\w+$/.test(c.req.path)) {
         return c.notFound();
     }

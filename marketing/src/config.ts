@@ -1,6 +1,7 @@
 export const APP_URL =
 	import.meta.env.PUBLIC_APP_URL ?? 'http://127.0.0.1:5190';
-export const SIGNUP_URL = `${APP_URL}/quizzes`;
+export const LOGIN_URL = `${APP_URL}/login`;
+export const SIGNUP_URL = `${APP_URL}/signup`;
 
 export const SITE_NAME = 'Rapid Sequence';
 export const SITE_DESCRIPTION =

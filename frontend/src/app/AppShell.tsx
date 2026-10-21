@@ -4,6 +4,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
+import { signOut, useSession } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { useAttempts } from '@/study/attempts';
 import {
@@ -20,6 +21,7 @@ import {
 	GraduationCap,
 	LayoutGrid,
 	ListTree,
+	LogOut,
 	type LucideIcon,
 	MessageCircle,
 	Mic,
@@ -180,12 +182,45 @@ function CourseSwitcher({
 	);
 }
 
+function initials(name: string): string {
+	const parts = name.trim().split(/\s+/).filter(Boolean);
+	const letters = parts.length > 1 ? [parts[0], parts.at(-1)] : parts;
+	return letters.map((part) => part?.[0]?.toUpperCase() ?? '').join('');
+}
+
+function AccountMenu({ email }: { email?: string }) {
+	return (
+		<Popover>
+			<PopoverTrigger
+				aria-label="Account"
+				className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent"
+			>
+				<Settings className="size-4" strokeWidth={1.6} />
+			</PopoverTrigger>
+			<PopoverContent align="end" className="w-60 p-1.5">
+				<p className="truncate px-2.5 py-2 text-sm text-muted-foreground">
+					{email}
+				</p>
+				<button
+					type="button"
+					onClick={() => signOut()}
+					className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm hover:bg-muted"
+				>
+					<LogOut className="size-4" strokeWidth={1.6} />
+					Sign out
+				</button>
+			</PopoverContent>
+		</Popover>
+	);
+}
+
 function Sidebar({
 	track,
 	collapsed,
 	onToggle,
 }: { track: ExamTrack; collapsed: boolean; onToggle: () => void }) {
 	const { pathname } = useLocation();
+	const user = useSession().data?.user;
 	return (
 		<nav
 			aria-label="Main"
@@ -266,20 +301,14 @@ function Sidebar({
 				)}
 			>
 				<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#3c7d6f] text-[15px] text-white">
-					AT
+					{initials(user?.name ?? '')}
 				</span>
 				{!collapsed && (
 					<span className="min-w-0 flex-1 truncate text-[15px] font-medium">
-						Dr A. Trainee
+						{user?.name}
 					</span>
 				)}
-				<button
-					type="button"
-					aria-label="Settings"
-					className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent"
-				>
-					<Settings className="size-4" strokeWidth={1.6} />
-				</button>
+				<AccountMenu email={user?.email} />
 			</div>
 		</nav>
 	);
@@ -287,6 +316,7 @@ function Sidebar({
 
 function TopBar({ track }: { track: ExamTrack }) {
 	const { pathname } = useLocation();
+	const email = useSession().data?.user.email;
 	return (
 		<nav
 			aria-label="Main"
@@ -316,8 +346,9 @@ function TopBar({ track }: { track: ExamTrack }) {
 					</Link>
 				);
 			})}
-			<div className="ml-auto">
+			<div className="ml-auto flex items-center gap-1">
 				<CourseSwitcher track={track} compact />
+				<AccountMenu email={email} />
 			</div>
 		</nav>
 	);
