@@ -15,7 +15,8 @@ Exam prep for the ANZCA Primary and Final.
 3. Start the app: `cd frontend && bun run dev`. Vite proxies `/api` to the API.
 
 `BETTER_AUTH_URL` must match the origin you open the app on, because Better
-Auth rejects requests from any other origin.
+Auth rejects requests from any other origin. Outside production,
+`localhost:5190` and `127.0.0.1:5190` are both trusted.
 
 ## Accounts
 
