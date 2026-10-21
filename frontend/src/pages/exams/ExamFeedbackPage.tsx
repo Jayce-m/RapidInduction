@@ -62,7 +62,7 @@ export function Hero({
 	name,
 	score,
 	tutorName,
-	kicker = 'RapidInduction Prepared Exam',
+	kicker = 'Rapid Sequence Prepared Exam',
 }: { name: string; score: number; tutorName: string; kicker?: string }) {
 	return (
 		<div className="relative overflow-hidden rounded-xl bg-[linear-gradient(100deg,#f7f1ea_0%,#fbf8f4_35%,#ffffff_60%)] p-6">

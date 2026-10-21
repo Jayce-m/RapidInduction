@@ -202,15 +202,15 @@ function Sidebar({
 			>
 				<Link
 					to="/quizzes"
-					aria-label="RapidInduction home"
+					aria-label="Rapid Sequence home"
 					className="font-display text-[21px] leading-none tracking-normal"
 				>
 					{collapsed ? (
 						<span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm text-primary-foreground">
-							Ri
+							Rs
 						</span>
 					) : (
-						'RapidInduction'
+						'Rapid Sequence'
 					)}
 				</Link>
 				<button
@@ -294,10 +294,10 @@ function TopBar({ track }: { track: ExamTrack }) {
 		>
 			<Link
 				to="/quizzes"
-				aria-label="RapidInduction home"
+				aria-label="Rapid Sequence home"
 				className="mr-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-display text-sm text-primary-foreground"
 			>
-				Ri
+				Rs
 			</Link>
 			{NAV.map(({ label, to, match, icon: Icon }) => {
 				const active = match(pathname);

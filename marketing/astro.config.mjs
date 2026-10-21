@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-	site: process.env.SITE_URL ?? 'https://rapidinduction.com',
+	site: process.env.SITE_URL ?? 'https://rapidsequence.com',
 	integrations: [sitemap()],
 	vite: { plugins: [tailwindcss()] },
 });

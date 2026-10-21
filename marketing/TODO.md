@@ -59,3 +59,8 @@ at build time.
   without touching layout components.
 - **2026-10-20. The "How it works" images are real app screenshots, not
   mock-ups.** The trade-off is that they must be retaken when the app changes.
+- **2026-10-21. The product is called Rapid Sequence.** It was renamed from
+  RapidInduction in the app and the site. The repo, the Fly app name, the server
+  package name and the browser storage key keep the old name, so deploys and
+  saved quiz attempts are unaffected. The site domain placeholder is now
+  `rapidsequence.com`; confirm it before launch.

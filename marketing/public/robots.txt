@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rapidinduction.com/sitemap-index.xml
+Sitemap: https://rapidsequence.com/sitemap-index.xml

@@ -16,7 +16,7 @@ export const announcement: Link = {
 
 export const nav: Link[] = [
 	{ label: 'How it works', href: '/#how-it-works' },
-	{ label: 'Why RapidInduction', href: '/#compare' },
+	{ label: 'Why Rapid Sequence', href: '/#compare' },
 	{ label: 'Pricing', href: '/#pricing' },
 	{ label: 'FAQ', href: '/#faq' },
 ];
@@ -30,7 +30,7 @@ export const hero = {
 	guarantee: 'Pass first time or your money back.',
 	image: exams,
 	imageAlt:
-		'The RapidInduction Exams page, showing exam accuracy and a list of practice exams',
+		'The Rapid Sequence Exams page, showing exam accuracy and a list of practice exams',
 };
 
 export const stats = {
@@ -38,7 +38,7 @@ export const stats = {
 	items: [
 		{ value: '91%', label: 'passed the written on their first sitting' },
 		{ value: '74%', label: 'felt ready for the viva' },
-		{ value: '88%', label: 'preferred RapidInduction to generic AI' },
+		{ value: '88%', label: 'preferred Rapid Sequence to generic AI' },
 	],
 };
 
@@ -61,7 +61,7 @@ export type Step = {
 export const howItWorks = {
 	kicker: 'How it works',
 	title: {
-		before: 'RapidInduction builds a ',
+		before: 'Rapid Sequence builds a ',
 		highlight: 'study',
 		after:
 			' system you can rely on from your first rotation through to exam day.',
@@ -69,7 +69,7 @@ export const howItWorks = {
 	steps: [
 		{
 			title: 'Personalise it to your exam',
-			body: 'Upload your notes, syllabus and past papers. RapidInduction links them to the ANZCA curriculum so your practice matches what is coming.',
+			body: 'Upload your notes, syllabus and past papers. Rapid Sequence links them to the ANZCA curriculum so your practice matches what is coming.',
 			image: materials,
 			imageAlt:
 				'The Materials page, with uploaded notes linked to curriculum topics',
@@ -115,9 +115,9 @@ export const marking = {
 };
 
 export const compare = {
-	kicker: 'What sets RapidInduction apart',
-	title: 'Generic AI knows medicine. RapidInduction knows your exam.',
-	us: 'RapidInduction',
+	kicker: 'What sets Rapid Sequence apart',
+	title: 'Generic AI knows medicine. Rapid Sequence knows your exam.',
+	us: 'Rapid Sequence',
 	them: 'ChatGPT / Claude',
 	rows: [
 		{
@@ -205,7 +205,7 @@ export type Advisor = {
 export const advisors = {
 	kicker: 'Clinical advisors',
 	title: 'Shaped by anaesthetists. Built for trainees.',
-	body: 'RapidInduction is built with consultant anaesthetists and supervisors of training, so it reflects how anaesthesia is taught and examined.',
+	body: 'Rapid Sequence is built with consultant anaesthetists and supervisors of training, so it reflects how anaesthesia is taught and examined.',
 	people: [
 		{
 			initials: 'AN',
@@ -239,7 +239,7 @@ export const pricing = {
 	title: {
 		before: 'A resit costs ',
 		emphasis: 'months of your life',
-		middle: '. RapidInduction costs ',
+		middle: '. Rapid Sequence costs ',
 		price: '$348',
 		after: '.',
 	},
@@ -251,7 +251,7 @@ export const pricing = {
 		monthsPerSitting: 6,
 		maxSittings: 4,
 		summary:
-			'Each extra sitting adds an exam fee and roughly six months of study. RapidInduction costs a fraction of one sitting and comes with a pass guarantee.',
+			'Each extra sitting adds an exam fee and roughly six months of study. Rapid Sequence costs a fraction of one sitting and comes with a pass guarantee.',
 	},
 	plan: {
 		heading: 'Primary and Final, all year.',
@@ -282,10 +282,10 @@ export const faq = {
 	title: 'Everything you need to know before getting started',
 	items: [
 		{
-			question: 'How is RapidInduction different from ChatGPT or Claude?',
+			question: 'How is Rapid Sequence different from ChatGPT or Claude?',
 			answer: [
-				'General chatbots know medicine. RapidInduction knows your exam. You are examined on the ANZCA curriculum, in a specific format, against specific marking standards. A generic model gives you the general answer without knowing how it will be marked.',
-				'RapidInduction uses the curriculum and your own materials to shape every quiz, paper and viva, so you are not just studying pharmacology, you are practising for the pharmacology questions you will face.',
+				'General chatbots know medicine. Rapid Sequence knows your exam. You are examined on the ANZCA curriculum, in a specific format, against specific marking standards. A generic model gives you the general answer without knowing how it will be marked.',
+				'Rapid Sequence uses the curriculum and your own materials to shape every quiz, paper and viva, so you are not just studying pharmacology, you are practising for the pharmacology questions you will face.',
 			],
 		},
 		{
@@ -303,7 +303,7 @@ export const faq = {
 		{
 			question: 'How does the pass guarantee work?',
 			answer: [
-				'If you study with RapidInduction and do not pass the exam you prepared for, we refund your subscription. Full terms will be published before launch.',
+				'If you study with Rapid Sequence and do not pass the exam you prepared for, we refund your subscription. Full terms will be published before launch.',
 			],
 		},
 		{
