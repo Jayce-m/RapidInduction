@@ -50,10 +50,10 @@ at build time.
 - **2026-10-20. The site shares the app's brand tokens.** They live in
   `frontend/src/theme.css`, which both the app and the site import, so colours
   and fonts stay in sync.
-- **2026-10-20. The homepage uses its own copy, logo and anaesthesia
-  content throughout.**
-- **2026-10-20. A "blind evaluation vs ChatGPT" chart was replaced with
-  an examiner-style marking sample.** A benchmark claim needs real test data,
+- **2026-10-20. The homepage uses Rapid Sequence's own copy, logo and
+  anaesthesia content throughout.**
+- **2026-10-20. A "blind evaluation vs ChatGPT" chart was replaced with an
+  examiner-style marking sample.** A benchmark claim needs real test data,
   which doesn't exist yet.
 - **2026-10-20. All marketing copy lives in `src/content.ts`.** Text can change
   without touching layout components.
