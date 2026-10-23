@@ -17,11 +17,16 @@ import {
 	chapterById,
 	chapterNumber,
 	chaptersForTrack,
-	readingPath,
-	scopePath,
 	scopeTitle,
 	topicById,
 } from '@/study/content';
+import {
+	attemptPath,
+	chapterPath,
+	outlinePath,
+	readingPath,
+	scopePath,
+} from '@/study/paths';
 import type { Chapter, Topic } from '@/study/types';
 import {
 	BookOpen,
@@ -215,7 +220,7 @@ function TopicAttempts({ topic }: { topic: Topic }) {
 								{score.correct}/{score.total}
 							</span>
 							<Button variant="pill" size="sm" asChild>
-								<Link to={`/quiz/attempt/${attempt.id}`}>Review</Link>
+								<Link to={attemptPath(attempt.id)}>Review</Link>
 							</Button>
 						</div>
 					</li>
@@ -237,7 +242,7 @@ export function ReadingPage() {
 					Chapter not found
 				</h1>
 				<Link
-					to="/quizzes"
+					to={outlinePath()}
 					className="mt-4 inline-block text-primary underline"
 				>
 					Back to quizzes
@@ -265,7 +270,7 @@ export function ReadingPage() {
 		<PageContainer wide>
 			<div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
 				<Link
-					to={`/quizzes?track=${chapter.track}`}
+					to={outlinePath(chapter.track)}
 					className="inline-flex items-center gap-1.5 text-[15px] text-primary hover:text-primary-border"
 				>
 					<ChevronLeft className="size-3.5" />
@@ -274,7 +279,7 @@ export function ReadingPage() {
 				<div className="flex items-center gap-3">
 					{nextChapter && (
 						<Link
-							to={`/quizzes/${nextChapter.id}`}
+							to={chapterPath(nextChapter.id)}
 							className="hidden items-center gap-1.5 text-[15px] text-primary hover:text-primary-border sm:inline-flex"
 						>
 							Continue to Chapter {chapterNumber(nextChapter)}

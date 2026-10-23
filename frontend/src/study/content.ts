@@ -13,7 +13,7 @@ export const chapters: Chapter[] = [...primaryChapters, ...finalChapters];
 export const chapterById = new Map<string, Chapter>();
 export const topicById = new Map<string, Topic>();
 export const questionById = new Map<string, McqQuestion>();
-const chapterOfTopic = new Map<string, Chapter>();
+export const chapterOfTopic = new Map<string, Chapter>();
 
 for (const chapter of chapters) {
 	chapterById.set(chapter.id, chapter);
@@ -52,12 +52,6 @@ export function parseScope(
 	return null;
 }
 
-export function scopePath(scope: QuizScope): string {
-	return scope.kind === 'chapter'
-		? `/quiz/chapter/${scope.chapterId}`
-		: `/quiz/topic/${scope.topicId}`;
-}
-
 // Scopes come from parseScope or validated storage, so lookups are known to hit.
 export function chapterOfScope(scope: QuizScope): Chapter {
 	const chapter =
@@ -79,9 +73,4 @@ export function questionsForScope(scope: QuizScope): McqQuestion[] {
 		return topicById.get(scope.topicId)?.questions ?? [];
 	}
 	return chapterOfScope(scope).topics.flatMap((topic) => topic.questions);
-}
-
-export function readingPath(topicId: string): string {
-	const chapter = chapterOfTopic.get(topicId);
-	return `/quizzes/${chapter?.id}?topic=${topicId}`;
 }

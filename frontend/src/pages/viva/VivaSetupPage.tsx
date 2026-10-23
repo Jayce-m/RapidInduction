@@ -1,7 +1,8 @@
 import { WaveBars } from '@/components/ExaminerOrb';
-import { type SegmentOption, Segmented } from '@/components/Segmented';
+import { Segmented } from '@/components/Segmented';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { MODE_OPTIONS } from '@/pages/viva/modeOptions';
 import {
 	type ExaminerStyle,
 	type ResponseMode,
@@ -9,14 +10,9 @@ import {
 	stationById,
 	vivaStations,
 } from '@/placeholder/viva';
-import { Check, Keyboard, Mic, MicOff, X } from 'lucide-react';
+import { Check, Mic, MicOff, X } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-
-const MODE_OPTIONS: SegmentOption<ResponseMode>[] = [
-	{ value: 'voice', label: 'Voice', icon: Mic },
-	{ value: 'text', label: 'Text', icon: Keyboard },
-];
 
 const STYLES: ExaminerStyle[] = ['supportive', 'standard', 'probing'];
 const LENGTHS = [8, 12, 15];

@@ -1,5 +1,5 @@
 import { ExaminerOrb, type OrbState, WaveBars } from '@/components/ExaminerOrb';
-import { type SegmentOption, Segmented } from '@/components/Segmented';
+import { Segmented } from '@/components/Segmented';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -7,7 +7,9 @@ import {
 	DialogDescription,
 	DialogTitle,
 } from '@/components/ui/dialog';
+import { clock } from '@/lib/time';
 import { cn } from '@/lib/utils';
+import { MODE_OPTIONS } from '@/pages/viva/modeOptions';
 import {
 	type ResponseMode,
 	type TranscriptTurn,
@@ -20,7 +22,6 @@ import {
 	Check,
 	ChevronRight,
 	FileText,
-	Keyboard,
 	Lock,
 	Mic,
 	MicOff,
@@ -30,11 +31,6 @@ import {
 } from 'lucide-react';
 import { type Dispatch, useEffect, useReducer, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-
-const MODE_OPTIONS: SegmentOption<ResponseMode>[] = [
-	{ value: 'voice', label: 'Voice', icon: Mic },
-	{ value: 'text', label: 'Text', icon: Keyboard },
-];
 
 type Stage =
 	| { kind: 'intro' }
@@ -164,12 +160,6 @@ function useElapsed(running: boolean): number {
 		return () => clearInterval(timer);
 	}, [running]);
 	return seconds;
-}
-
-function clock(seconds: number): string {
-	const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
-	const ss = String(seconds % 60).padStart(2, '0');
-	return `${mm}:${ss}`;
 }
 
 function orbState(stage: Stage, micOn: boolean, mode: ResponseMode): OrbState {

@@ -7,12 +7,8 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { bestScore, sameScope, useAttempts } from '@/study/attempts';
-import {
-	TRACK_LABEL,
-	chapterNumber,
-	chaptersForTrack,
-	scopePath,
-} from '@/study/content';
+import { TRACK_LABEL, chapterNumber, chaptersForTrack } from '@/study/content';
+import { chapterPath, scopePath } from '@/study/paths';
 import type { Chapter, ExamTrack, QuizScope } from '@/study/types';
 import { ChevronDown } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -35,7 +31,7 @@ function TopicsMenu({ chapter }: { chapter: Chapter }) {
 					{chapter.topics.map((topic) => (
 						<li key={topic.id}>
 							<Link
-								to={`/quizzes/${chapter.id}?topic=${topic.id}`}
+								to={chapterPath(chapter.id, topic.id)}
 								className="flex flex-col rounded-md px-3 py-2 hover:bg-muted"
 							>
 								<span className="text-sm font-medium">{topic.title}</span>
@@ -79,7 +75,7 @@ function ChapterCard({ chapter }: { chapter: Chapter }) {
 					asChild
 					className="self-start text-xs font-medium sm:self-center"
 				>
-					<Link to={`/quizzes/${chapter.id}`}>Open reading</Link>
+					<Link to={chapterPath(chapter.id)}>Open reading</Link>
 				</Button>
 			</div>
 			<div className="mx-2 flex items-center justify-between gap-4 rounded-b-xl border border-t-0 bg-[#fdfcf9] px-5 py-4">

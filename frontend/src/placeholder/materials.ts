@@ -1,6 +1,8 @@
 // Placeholder data for the Materials page. Nothing is uploaded or parsed: the page
 // reads these exports, so real uploads only need to produce values of the same types.
 
+import { ago } from '@/lib/time';
+
 export type MaterialShelf = 'notes' | 'papers';
 export type FileFormat = 'PDF' | 'DOCX' | 'PPTX';
 
@@ -42,10 +44,6 @@ export const SHELF_COPY: Record<
 		action: 'Upload past papers',
 	},
 };
-
-function ago(hours: number): string {
-	return new Date(Date.now() - hours * 3_600_000).toISOString();
-}
 
 export const placeholderCourse: CourseProfile = {
 	label: 'Exam',

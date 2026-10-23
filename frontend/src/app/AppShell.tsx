@@ -13,6 +13,7 @@ import {
 	chapterOfScope,
 	parseScope,
 } from '@/study/content';
+import { outlinePath } from '@/study/paths';
 import type { ExamTrack } from '@/study/types';
 import {
 	Check,
@@ -107,7 +108,7 @@ const NAV: NavItem[] = [
 	},
 	{
 		label: 'Quizzes',
-		to: (track) => `/quizzes?track=${track}`,
+		to: (track) => outlinePath(track),
 		match: (p) => p.startsWith('/quiz'),
 		icon: ListTree,
 	},
@@ -168,7 +169,7 @@ function CourseSwitcher({
 				{TRACKS.map((option) => (
 					<Link
 						key={option}
-						to={`/quizzes?track=${option}`}
+						to={outlinePath(option)}
 						onClick={() => setOpen(false)}
 						aria-current={option === track ? 'true' : undefined}
 						className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-muted"
@@ -236,7 +237,7 @@ function Sidebar({
 				)}
 			>
 				<Link
-					to="/quizzes"
+					to={outlinePath()}
 					aria-label="Rapid Sequence home"
 					className="font-display text-[21px] leading-none tracking-normal"
 				>
@@ -323,7 +324,7 @@ function TopBar({ track }: { track: ExamTrack }) {
 			className="sticky top-0 z-40 flex h-14 items-center gap-0.5 border-b bg-sidebar/95 px-2 backdrop-blur md:hidden"
 		>
 			<Link
-				to="/quizzes"
+				to={outlinePath()}
 				aria-label="Rapid Sequence home"
 				className="mr-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-display text-sm text-primary-foreground"
 			>

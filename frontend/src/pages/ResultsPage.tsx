@@ -18,11 +18,10 @@ import {
 	TRACK_LABEL,
 	chapterOfScope,
 	questionById,
-	readingPath,
-	scopePath,
 	scopeTitle,
 	topicById,
 } from '@/study/content';
+import { outlinePath, readingPath, scopePath } from '@/study/paths';
 import type { McqQuestion, QuizAttempt } from '@/study/types';
 import {
 	BookOpen,
@@ -286,7 +285,7 @@ export function ResultsPage() {
 					Attempts are saved in this browser only.
 				</p>
 				<Link
-					to="/quizzes"
+					to={outlinePath()}
 					className="mt-4 inline-block text-primary underline"
 				>
 					Back to quizzes
@@ -305,7 +304,7 @@ export function ResultsPage() {
 		<PageContainer>
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<Link
-					to={`/quizzes?track=${chapter.track}`}
+					to={outlinePath(chapter.track)}
 					className="inline-flex items-center gap-1 text-sm hover:text-primary"
 				>
 					<ChevronLeft className="size-4" />
@@ -408,7 +407,7 @@ export function ResultsPage() {
 							description={`Every topic scored ${STRENGTH_THRESHOLD}% or more. Pick the next chapter from the outline.`}
 						>
 							<Button variant="pill" size="sm" asChild>
-								<Link to={`/quizzes?track=${chapter.track}`}>Open outline</Link>
+								<Link to={outlinePath(chapter.track)}>Open outline</Link>
 							</Button>
 						</Step>
 					)}

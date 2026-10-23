@@ -1,6 +1,7 @@
 // Placeholder data for the Final viva section. The live room plays a fixed script
 // instead of talking to a model: swapping in a real examiner means producing turns
 // of the same shape from a streaming voice session.
+import { ago } from '@/lib/time';
 import type { FeedbackPoint } from '@/placeholder/exams';
 
 export type ExaminerStyle = 'supportive' | 'standard' | 'probing';
@@ -159,10 +160,6 @@ export const vivaStations: VivaStation[] = [
 ];
 
 export const stationById = new Map(vivaStations.map((s) => [s.id, s]));
-
-function ago(hours: number): string {
-	return new Date(Date.now() - hours * 3_600_000).toISOString();
-}
 
 export const placeholderVivas: VivaSummary[] = [
 	{

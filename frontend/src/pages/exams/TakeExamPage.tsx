@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { clock } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import {
 	type ExamPaper,
@@ -51,9 +52,7 @@ function useCountdown(minutes: number | null): string | null {
 		return () => clearInterval(timer);
 	}, [minutes]);
 	if (remaining === null) return null;
-	const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
-	const ss = String(remaining % 60).padStart(2, '0');
-	return `${mm}:${ss}`;
+	return clock(remaining);
 }
 
 function McqAnswer({

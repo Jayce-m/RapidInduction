@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { clock } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { Hero, PointsColumn } from '@/pages/exams/ExamFeedbackPage';
 import {
@@ -21,10 +22,6 @@ import { Link, useParams } from 'react-router-dom';
 
 const RUBRIC_MAX = 5;
 const RUBRIC_STEPS = Array.from({ length: RUBRIC_MAX }, (_, i) => i + 1);
-
-function clock(seconds: number): string {
-	return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-}
 
 function Rubric({ lines }: { lines: RubricLine[] }) {
 	return (

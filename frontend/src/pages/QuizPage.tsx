@@ -2,13 +2,14 @@ import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { saveAttempt } from '@/study/attempts';
+import { parseScope, questionsForScope, scopeTitle } from '@/study/content';
 import {
-	parseScope,
-	questionsForScope,
+	attemptPath,
+	chapterPath,
+	outlinePath,
 	readingPath,
 	scopePath,
-	scopeTitle,
-} from '@/study/content';
+} from '@/study/paths';
 import type { McqQuestion, OptionKey, QuizScope } from '@/study/types';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useReducer } from 'react';
@@ -39,7 +40,7 @@ const OPTION_KEYS: readonly string[] = ['A', 'B', 'C', 'D', 'E'];
 
 function exitPath(scope: QuizScope): string {
 	return scope.kind === 'chapter'
-		? `/quizzes/${scope.chapterId}`
+		? chapterPath(scope.chapterId)
 		: readingPath(scope.topicId);
 }
 
@@ -71,7 +72,7 @@ function QuizRunner({
 			answers: state.answers,
 			completedAt: new Date().toISOString(),
 		});
-		navigate(`/quiz/attempt/${id}`, { replace: true });
+		navigate(attemptPath(id), { replace: true });
 	};
 
 	useEffect(() => {
@@ -224,7 +225,7 @@ export function QuizPage() {
 			<PageContainer>
 				<h1 className="font-display text-[26px] leading-8">Quiz not found</h1>
 				<Link
-					to="/quizzes"
+					to={outlinePath()}
 					className="mt-4 inline-block text-primary underline"
 				>
 					Back to quizzes

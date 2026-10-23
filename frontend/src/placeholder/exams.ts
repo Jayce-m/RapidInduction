@@ -1,6 +1,8 @@
 // Placeholder data for the Exams section. Nothing here is generated or graded:
 // every page under /exams reads from this module, so swapping in real data means
 // replacing these exports with fetched values of the same types.
+import { ago } from '@/lib/time';
+import { chapterPath, scopePath } from '@/study/paths';
 import type { OptionKey } from '@/study/types';
 
 export type ExamType = 'MCQ' | 'SAQ' | 'Mixed';
@@ -74,10 +76,6 @@ export interface ExamFeedback {
 	practiceQuiz: { label: string; topicCount: number; to: string };
 	outlineChapters: OutlineLink[];
 	responses: Record<string, QuestionResponse>;
-}
-
-function ago(hours: number): string {
-	return new Date(Date.now() - hours * 3_600_000).toISOString();
 }
 
 export const placeholderExams: ExamSummary[] = [
@@ -248,18 +246,18 @@ export const placeholderFeedback: ExamFeedback = {
 	practiceQuiz: {
 		label: 'Practice quiz',
 		topicCount: 1,
-		to: '/quiz/topic/oxygen-transport',
+		to: scopePath({ kind: 'topic', topicId: 'oxygen-transport' }),
 	},
 	outlineChapters: [
 		{
 			title: 'Physiology',
 			topicCount: 1,
-			to: '/quizzes/physiology?topic=oxygen-transport',
+			to: chapterPath('physiology', 'oxygen-transport'),
 		},
 		{
 			title: 'Physics and measurement',
 			topicCount: 1,
-			to: '/quizzes/physics-measurement?topic=pulse-oximetry',
+			to: chapterPath('physics-measurement', 'pulse-oximetry'),
 		},
 	],
 	responses: {
