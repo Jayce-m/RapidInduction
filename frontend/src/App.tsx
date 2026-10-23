@@ -1,10 +1,10 @@
 import { AppShell } from '@/app/AppShell';
+import { CourseGate } from '@/app/CourseGate';
 import { RequireAuth } from '@/app/RequireAuth';
 import { PageContainer } from '@/components/PageContainer';
 import { AuthPage } from '@/pages/AuthPage';
 import { MaterialsPage } from '@/pages/MaterialsPage';
 import { OutlinePage } from '@/pages/OutlinePage';
-import { PapersPage } from '@/pages/PapersPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { QuizPage } from '@/pages/QuizPage';
 import { ReadingPage } from '@/pages/ReadingPage';
@@ -49,30 +49,34 @@ const router = createBrowserRouter([
 			{ path: '/viva/:id/live', element: <VivaLivePage /> },
 			{ path: '/viva/:id/feedback', element: <VivaFeedbackPage /> },
 			{
-				path: '/',
-				element: <AppShell />,
+				element: <CourseGate />,
 				children: [
-					{ index: true, element: <Navigate to="/quizzes" replace /> },
-					{ path: 'quizzes', element: <OutlinePage /> },
-					{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
-					{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
-					{ path: 'quiz/:scope/:id', element: <QuizPage /> },
-					{ path: 'exams', element: <ExamsPage /> },
-					{ path: 'viva', element: <VivaPage /> },
-					{ path: 'papers', element: <PapersPage /> },
 					{
-						path: 'tutor',
-						element: (
-							<PlaceholderPage
-								title="Tutor"
-								icon={MessageCircle}
-								heading="Your tutor is on the way"
-								body="Ask questions about any topic in the ANZCA curriculum and get answers grounded in your readings."
-							/>
-						),
+						path: '/',
+						element: <AppShell />,
+						children: [
+							{ index: true, element: <Navigate to="/quizzes" replace /> },
+							{ path: 'quizzes', element: <OutlinePage /> },
+							{ path: 'quizzes/:chapterId', element: <ReadingPage /> },
+							{ path: 'quiz/attempt/:attemptId', element: <ResultsPage /> },
+							{ path: 'quiz/:scope/:id', element: <QuizPage /> },
+							{ path: 'exams', element: <ExamsPage /> },
+							{ path: 'viva', element: <VivaPage /> },
+							{
+								path: 'tutor',
+								element: (
+									<PlaceholderPage
+										title="Tutor"
+										icon={MessageCircle}
+										heading="Your tutor is on the way"
+										body="Ask questions about any topic in the ANZCA curriculum and get answers grounded in your readings."
+									/>
+								),
+							},
+							{ path: 'materials', element: <MaterialsPage /> },
+							{ path: '*', element: <NotFoundPage /> },
+						],
 					},
-					{ path: 'materials', element: <MaterialsPage /> },
-					{ path: '*', element: <NotFoundPage /> },
 				],
 			},
 		],

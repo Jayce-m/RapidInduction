@@ -36,7 +36,8 @@ function TopicsMenu({ chapter }: { chapter: Chapter }) {
 							>
 								<span className="text-sm font-medium">{topic.title}</span>
 								<span className="text-xs text-muted-foreground">
-									{topic.questions.length} questions
+									{topic.mcqs.length}{' '}
+									{topic.mcqs.length === 1 ? 'question' : 'questions'}
 								</span>
 							</Link>
 						</li>

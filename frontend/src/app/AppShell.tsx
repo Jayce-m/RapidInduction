@@ -18,7 +18,6 @@ import type { ExamTrack } from '@/study/types';
 import {
 	Check,
 	ChevronsUpDown,
-	FileText,
 	GraduationCap,
 	LayoutGrid,
 	ListTree,
@@ -123,12 +122,6 @@ const NAV: NavItem[] = [
 		to: () => '/viva',
 		match: (p) => p.startsWith('/viva'),
 		icon: Mic,
-	},
-	{
-		label: 'Papers',
-		to: () => '/papers',
-		match: (p) => p.startsWith('/papers'),
-		icon: FileText,
 	},
 	{
 		label: 'Materials',

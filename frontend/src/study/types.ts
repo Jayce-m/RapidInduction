@@ -19,11 +19,26 @@ export interface McqQuestion {
 	explanation: string;
 }
 
+export interface MarkingPoint {
+	text: string;
+	marks: number;
+}
+
+export interface SaqQuestion {
+	id: string;
+	topicId: string;
+	stem: string;
+	marks: number;
+	markingPoints: MarkingPoint[];
+	examinerNote: string;
+}
+
 export interface Topic {
 	id: string;
 	title: string;
 	reading: Reading;
-	questions: McqQuestion[];
+	mcqs: McqQuestion[];
+	saqs: SaqQuestion[];
 }
 
 export interface Chapter {

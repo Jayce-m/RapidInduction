@@ -1,5 +1,3 @@
-import { finalChapters } from './seed/final';
-import { primaryChapters } from './seed/primary';
 import type {
 	Chapter,
 	ExamTrack,
@@ -8,20 +6,27 @@ import type {
 	Topic,
 } from './types';
 
-export const chapters: Chapter[] = [...primaryChapters, ...finalChapters];
-
+// The course is fetched once by CourseGate before any study page renders, so
+// these indexes are populated by the time anything reads them.
+export const chapters: Chapter[] = [];
 export const chapterById = new Map<string, Chapter>();
 export const topicById = new Map<string, Topic>();
 export const questionById = new Map<string, McqQuestion>();
 export const chapterOfTopic = new Map<string, Chapter>();
 
-for (const chapter of chapters) {
-	chapterById.set(chapter.id, chapter);
-	for (const topic of chapter.topics) {
-		topicById.set(topic.id, topic);
-		chapterOfTopic.set(topic.id, chapter);
-		for (const question of topic.questions) {
-			questionById.set(question.id, question);
+export function indexCourse(course: Chapter[]) {
+	chapters.splice(0, chapters.length, ...course);
+	for (const index of [chapterById, topicById, questionById, chapterOfTopic]) {
+		index.clear();
+	}
+	for (const chapter of course) {
+		chapterById.set(chapter.id, chapter);
+		for (const topic of chapter.topics) {
+			topicById.set(topic.id, topic);
+			chapterOfTopic.set(topic.id, chapter);
+			for (const question of topic.mcqs) {
+				questionById.set(question.id, question);
+			}
 		}
 	}
 }
@@ -70,7 +75,7 @@ export function scopeTitle(scope: QuizScope): string {
 
 export function questionsForScope(scope: QuizScope): McqQuestion[] {
 	if (scope.kind === 'topic') {
-		return topicById.get(scope.topicId)?.questions ?? [];
+		return topicById.get(scope.topicId)?.mcqs ?? [];
 	}
-	return chapterOfScope(scope).topics.flatMap((topic) => topic.questions);
+	return chapterOfScope(scope).topics.flatMap((topic) => topic.mcqs);
 }
