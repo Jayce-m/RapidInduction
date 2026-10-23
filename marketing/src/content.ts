@@ -6,6 +6,7 @@ import exams from './assets/screens/exams.png';
 import materials from './assets/screens/materials.png';
 import quiz from './assets/screens/quiz.png';
 import viva from './assets/screens/viva.png';
+import { aud } from './resit';
 
 type Link = { label: string; href?: string };
 
@@ -88,6 +89,15 @@ export const howItWorks = {
 	] satisfies Step[],
 };
 
+const sampleRubric = [
+	{ label: 'Structure and mechanism', earned: 5, max: 5 },
+	{ label: 'Pharmacokinetics', earned: 4, max: 5 },
+	{ label: 'Dosing for reversal', earned: 4, max: 5 },
+	{ label: 'Adverse effects and interactions', earned: 2, max: 5 },
+];
+
+const sum = (values: number[]) => values.reduce((total, n) => total + n, 0);
+
 export const marking = {
 	kicker: 'Examiner-style marking',
 	title: 'Marked the way the College marks',
@@ -95,19 +105,14 @@ export const marking = {
 	sample: {
 		label: 'Sample SAQ',
 		question: 'Describe the pharmacology of sugammadex.',
-		score: 15,
-		max: 20,
+		score: sum(sampleRubric.map((line) => line.earned)),
+		max: sum(sampleRubric.map((line) => line.max)),
 	},
 	callout: {
 		title: 'Clear pass on this answer.',
 		body: 'Strong on mechanism, light on drug interactions.',
 	},
-	rubric: [
-		{ label: 'Structure and mechanism', earned: 5, max: 5 },
-		{ label: 'Pharmacokinetics', earned: 4, max: 5 },
-		{ label: 'Dosing for reversal', earned: 4, max: 5 },
-		{ label: 'Adverse effects and interactions', earned: 2, max: 5 },
-	],
+	rubric: sampleRubric,
 	footnote:
 		'Illustrative marking of a placeholder answer. Rubrics are reviewed by practising anaesthetists.',
 };
@@ -232,13 +237,36 @@ export const advisors = {
 	] satisfies Advisor[],
 };
 
+const standardMonthly = 39;
+const annualMonthly = 29;
+const annualTotal = annualMonthly * 12;
+const savingPercent = Math.floor((1 - annualMonthly / standardMonthly) * 100);
+const monthsPerSitting = 6;
+
+const numberWords = [
+	'zero',
+	'one',
+	'two',
+	'three',
+	'four',
+	'five',
+	'six',
+	'seven',
+	'eight',
+	'nine',
+	'ten',
+	'eleven',
+	'twelve',
+];
+const spellOut = (n: number) => numberWords[n] ?? String(n);
+
 export const pricing = {
 	kicker: 'Pricing',
 	title: {
 		before: 'A resit costs ',
 		emphasis: 'months of your life',
 		middle: '. Rapid Sequence costs ',
-		price: '$348',
+		price: aud(annualTotal),
 		after: '.',
 	},
 	body: 'Every extra sitting means another exam fee, another round of study leave and a delayed step in training. See the difference for yourself.',
@@ -246,18 +274,17 @@ export const pricing = {
 		label: 'What a resit costs',
 		hint: 'Drag to explore',
 		examFee: 3500,
-		monthsPerSitting: 6,
+		monthsPerSitting,
 		maxSittings: 4,
-		summary:
-			'Each extra sitting adds an exam fee and roughly six months of study. Rapid Sequence costs a fraction of one sitting and comes with a pass guarantee.',
+		summary: `Each extra sitting adds an exam fee and roughly ${spellOut(monthsPerSitting)} months of study. Rapid Sequence costs a fraction of one sitting and comes with a pass guarantee.`,
 	},
 	plan: {
 		heading: 'Primary and Final, all year.',
 		headingMonthly: 'Primary and Final, month to month.',
-		standardMonthly: 39,
-		annualMonthly: 29,
-		annualTotal: 348,
-		saving: 'Save 25% vs monthly',
+		standardMonthly,
+		annualMonthly,
+		annualTotal,
+		saving: `Save ${savingPercent}% vs monthly`,
 		features: [
 			{ strong: 'Unlimited practice exams', rest: ' in the College style' },
 			{ strong: 'Live AI viva practice', rest: ' with follow-up questions' },

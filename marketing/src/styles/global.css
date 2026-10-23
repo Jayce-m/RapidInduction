@@ -33,3 +33,5 @@
   text-decoration-thickness: 1.5px;
   text-underline-offset: 6px;
 }
+
+@custom-variant monthly (&:is(:where(.group\/billing):has(#billing-monthly:checked) *));
