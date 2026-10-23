@@ -60,9 +60,10 @@ export interface VivaScript {
 	exhibit: VivaExhibit;
 }
 
-export type TranscriptNote =
-	| { tone: 'scored'; text: string }
-	| { tone: 'missed'; text: string };
+export interface TranscriptNote {
+	tone: 'scored' | 'missed';
+	text: string;
+}
 
 export interface TranscriptTurn {
 	id: string;

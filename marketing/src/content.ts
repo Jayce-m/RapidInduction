@@ -7,7 +7,7 @@ import materials from './assets/screens/materials.png';
 import quiz from './assets/screens/quiz.png';
 import viva from './assets/screens/viva.png';
 
-export type Link = { label: string; href?: string };
+type Link = { label: string; href?: string };
 
 export const announcement: Link = {
 	label: 'New: practise the Final viva out loud with an AI examiner',
@@ -42,16 +42,14 @@ export const stats = {
 	],
 };
 
-export type Testimonial = { quote: string; name: string; role: string };
-
-export const testimonial: Testimonial = {
+export const testimonial = {
 	quote:
 		'Being able to sit SAQs and vivas that are marked the way the examiners mark them changed how I studied. I stopped rereading and started practising.',
 	name: 'Priya K.',
 	role: 'Provisional fellow, Melbourne',
 };
 
-export type Step = {
+type Step = {
 	title: string;
 	body: string;
 	image: ImageMetadata;
@@ -148,7 +146,7 @@ export const compare = {
 	],
 };
 
-export type ResultCard =
+type ResultCard =
 	| { kind: 'stat'; value: string; label: string }
 	| { kind: 'quote'; quote: string; name: string; tone: string }
 	| { kind: 'mission'; quote: string; link: Link };
@@ -195,7 +193,7 @@ export const results = {
 	] satisfies ResultCard[],
 };
 
-export type Advisor = {
+type Advisor = {
 	initials: string;
 	name: string;
 	credentials: string;
@@ -275,7 +273,7 @@ export const pricing = {
 	},
 };
 
-export type Faq = { question: string; answer: string[] };
+type Faq = { question: string; answer: string[] };
 
 export const faq = {
 	kicker: 'Frequently asked',

@@ -15,5 +15,3 @@ export const auth = betterAuth({
 			? []
 			: ['http://localhost:5190', 'http://127.0.0.1:5190'],
 });
-
-export type Session = typeof auth.$Infer.Session;

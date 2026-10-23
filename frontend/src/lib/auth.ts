@@ -2,7 +2,7 @@ import { createAuthClient } from 'better-auth/react';
 
 // The API is served from the same origin as the app (proxied by Vite in dev),
 // so the client's default base URL of `${origin}/api/auth` is correct.
-export const authClient = createAuthClient();
+const authClient = createAuthClient();
 
 export const { useSession, signIn, signUp, signOut } = authClient;
 

@@ -17,7 +17,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-type Answers = Record<string, OptionKey | string>;
+type Answers = Record<string, string>;
 
 const TYPE_LABEL: Record<ExamQuestion['kind'], string> = {
 	mcq: 'Multiple Choice',
@@ -62,7 +62,7 @@ function McqAnswer({
 	onSelect,
 }: {
 	question: Extract<ExamQuestion, { kind: 'mcq' }>;
-	selected: OptionKey | undefined;
+	selected: string | undefined;
 	onSelect: (key: OptionKey) => void;
 }) {
 	return (
@@ -281,7 +281,7 @@ export function TakeExam({
 					{question.kind === 'mcq' ? (
 						<McqAnswer
 							question={question}
-							selected={answers[question.id] as OptionKey | undefined}
+							selected={answers[question.id]}
 							onSelect={setAnswer}
 						/>
 					) : (

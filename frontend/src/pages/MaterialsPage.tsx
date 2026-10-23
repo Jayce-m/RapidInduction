@@ -271,7 +271,7 @@ function StatusCell({
 	}
 }
 
-export function MaterialList({
+function MaterialList({
 	materials,
 	onRetry,
 	onDelete,

@@ -13,7 +13,7 @@ export const chapters: Chapter[] = [...primaryChapters, ...finalChapters];
 export const chapterById = new Map<string, Chapter>();
 export const topicById = new Map<string, Topic>();
 export const questionById = new Map<string, McqQuestion>();
-export const chapterOfTopic = new Map<string, Chapter>();
+const chapterOfTopic = new Map<string, Chapter>();
 
 for (const chapter of chapters) {
 	chapterById.set(chapter.id, chapter);

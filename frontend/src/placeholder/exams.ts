@@ -278,6 +278,6 @@ export const placeholderFeedback: ExamFeedback = {
 	},
 };
 
-export function examById(id: string | undefined): ExamSummary | undefined {
+export function examById(id: string): ExamSummary | undefined {
 	return placeholderExams.find((exam) => exam.id === id);
 }

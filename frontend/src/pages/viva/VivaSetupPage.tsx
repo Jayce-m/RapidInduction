@@ -126,10 +126,9 @@ function MicCheckPanel({
 export function VivaSetupPage() {
 	const navigate = useNavigate();
 	const [search] = useSearchParams();
+	const requested = search.get('station');
 	const [stationId, setStationId] = useState(
-		stationById.has(search.get('station') ?? '')
-			? (search.get('station') as string)
-			: vivaStations[0].id,
+		requested && stationById.has(requested) ? requested : vivaStations[0].id,
 	);
 	const [style, setStyle] = useState<ExaminerStyle>('standard');
 	const [minutes, setMinutes] = useState(12);
