@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { questionById } from './content';
+import { parseScope, questionById } from './content';
 import type { QuizAttempt, QuizScope } from './types';
 
 const STORAGE_KEY = 'rapidinduction.attempts.v1';
@@ -12,11 +12,15 @@ let snapshot: QuizAttempt[] | null = null;
 function isUsableAttempt(value: unknown): value is QuizAttempt {
 	if (typeof value !== 'object' || value === null) return false;
 	const attempt = value as Partial<QuizAttempt>;
+	const scope = attempt.scope as
+		| { kind?: string; chapterId?: string; topicId?: string }
+		| undefined;
 	return (
 		typeof attempt.id === 'string' &&
 		typeof attempt.completedAt === 'string' &&
-		typeof attempt.scope === 'object' &&
+		parseScope(scope?.kind, scope?.chapterId ?? scope?.topicId) !== null &&
 		typeof attempt.answers === 'object' &&
+		attempt.answers !== null &&
 		Array.isArray(attempt.questionIds) &&
 		attempt.questionIds.every((id) => questionById.has(id))
 	);
