@@ -4,6 +4,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
+import { forgetUser } from '@/lib/analytics';
 import { signOut, useSession } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { TRACK_LABEL } from '@/study/course';
@@ -39,7 +40,11 @@ const TRACKS: ExamTrack[] = ['primary', 'final'];
 function useActiveTrack(): ExamTrack {
 	const course = useCourse();
 	const attempts = useAttempts();
-	const routeTrack = trackForRoute(course, attempts, routeInfo(useLocation(), useMatches()));
+	const routeTrack = trackForRoute(
+		course,
+		attempts,
+		routeInfo(useLocation(), useMatches()),
+	);
 	const lastTrack = useShell((state) => state.lastTrack);
 	return routeTrack ?? lastTrack;
 }
@@ -150,7 +155,10 @@ function AccountMenu({ email }: { email?: string }) {
 				</p>
 				<button
 					type="button"
-					onClick={() => signOut()}
+					onClick={() => {
+						forgetUser();
+						signOut();
+					}}
 					className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm hover:bg-muted"
 				>
 					<LogOut className="size-4" strokeWidth={1.6} />

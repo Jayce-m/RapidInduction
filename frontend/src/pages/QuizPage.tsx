@@ -1,5 +1,6 @@
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
+import { track } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 import {
 	type Course,
@@ -47,6 +48,12 @@ function QuizRunner({
 	const submit = () => {
 		const attempt = finishQuiz(state, scope);
 		saveAttempt(course, attempt);
+		track('quiz_completed', {
+			scope: scope.kind,
+			questions: questions.length,
+			correct: questions.filter((q) => attempt.answers[q.id] === q.correct)
+				.length,
+		});
 		navigate(attemptPath(attempt.id), { replace: true });
 	};
 

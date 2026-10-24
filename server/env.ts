@@ -20,6 +20,7 @@ export const env = parse(
 		DATABASE_URL: z.url(),
 		BETTER_AUTH_SECRET: z.string().min(32),
 		BETTER_AUTH_URL: z.url(),
+		POSTHOG_KEY: z.string().min(1).optional(),
 		NODE_ENV: z
 			.enum(['development', 'production', 'test'])
 			.default('development'),

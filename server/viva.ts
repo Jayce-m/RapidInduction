@@ -9,6 +9,7 @@ import {
 	or,
 	sql,
 } from 'drizzle-orm';
+import { track } from './analytics';
 import { db } from './db/db';
 import {
 	type KeyPoints,
@@ -107,12 +108,19 @@ export async function startViva(
 			returning id`),
 	]);
 	if (inserted.rows.length === 0) {
+		track(userId, 'viva_limit_reached', { limit: VIVAS_PER_MONTH });
 		return {
 			kind: 'limit-reached',
 			message: `You've used all ${VIVAS_PER_MONTH} vivas for this month.`,
 		};
 	}
 
+	track(userId, 'viva_started', {
+		station: station.id,
+		style: input.style,
+		mode: input.mode,
+		minutes: input.minutes,
+	});
 	return {
 		kind: 'started',
 		viva: {
@@ -237,6 +245,9 @@ async function resumeStalled(userId: string): Promise<void> {
 function startMarking(session: Session) {
 	void finishMarking(session).catch(async (error) => {
 		console.error(`Marking viva ${session.id} failed:`, error);
+		track(session.userId, 'viva_marking_failed', {
+			station: session.stationId,
+		});
 		await db
 			.update(vivaSessions)
 			.set({ status: 'failed' })
@@ -309,6 +320,7 @@ async function finishMarking(session: Session) {
 			.update(vivaSessions)
 			.set({ transcript, status: 'unanswered' })
 			.where(stillMarking);
+		track(session.userId, 'viva_unanswered', { station: session.stationId });
 		return;
 	}
 
@@ -322,6 +334,14 @@ async function finishMarking(session: Session) {
 		.update(vivaSessions)
 		.set({ transcript, marking, status: 'marked' })
 		.where(stillMarking);
+	track(session.userId, 'viva_marked', {
+		station: session.stationId,
+		style: session.style,
+		mode: session.mode,
+		minutes: session.minutes,
+		score: marking.score,
+		rating: marking.rating,
+	});
 }
 
 interface VivaBase {

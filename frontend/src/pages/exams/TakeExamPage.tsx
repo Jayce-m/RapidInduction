@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { track } from '@/lib/analytics';
 import { clock } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import {
@@ -335,7 +336,10 @@ export function TakeExamPage() {
 	return (
 		<TakeExam
 			paper={paper}
-			onSubmit={() => navigate(`/exams/${id}/feedback`, { replace: true })}
+			onSubmit={() => {
+				track('exam_submitted', { questions: paper.questions.length });
+				navigate(`/exams/${id}/feedback`, { replace: true });
+			}}
 		/>
 	);
 }
