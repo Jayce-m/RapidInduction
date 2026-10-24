@@ -28,7 +28,7 @@ export const hero = {
 		'The AI study partner for anaesthesia trainees.',
 		'Built around how the College teaches, examines and marks.',
 	],
-	guarantee: 'Pass first time or your money back.',
+	guarantee: 'Pass first time, or keep studying free until you do.',
 	image: exams,
 	imageAlt:
 		'The Rapid Sequence Exams page, showing exam accuracy and a list of practice exams',
@@ -135,7 +135,7 @@ export const compare = {
 		},
 		{
 			feature: 'Practice',
-			us: 'Unlimited quizzes, timed papers and live vivas with instant marking',
+			us: 'Unlimited quizzes and timed papers, plus live vivas, all with instant marking',
 			them: 'No integrated practice or marking tools',
 		},
 		{
@@ -237,8 +237,9 @@ export const advisors = {
 	] satisfies Advisor[],
 };
 
-const standardMonthly = 39;
-const annualMonthly = 29;
+const standardMonthly = 59;
+const annualMonthly = 49;
+const vivasPerMonth = 7;
 const annualTotal = annualMonthly * 12;
 const savingPercent = Math.floor((1 - annualMonthly / standardMonthly) * 100);
 const monthsPerSitting = 6;
@@ -287,15 +288,20 @@ export const pricing = {
 		saving: `Save ${savingPercent}% vs monthly`,
 		features: [
 			{ strong: 'Unlimited practice exams', rest: ' in the College style' },
-			{ strong: 'Live AI viva practice', rest: ' with follow-up questions' },
+			{
+				strong: `${vivasPerMonth} live AI vivas a month`,
+				rest: ' with follow-up questions',
+			},
 			{ strong: 'Instant marking', rest: ' with rubric-based feedback' },
 			{ strong: 'AI tutor', rest: ' grounded in your materials' },
 			{ lead: 'Quizzes generated from ', strong: 'your uploads' },
 			{ strong: 'Both exams', rest: ', every topic, all year' },
 		],
 		guarantee: {
-			title: 'Pass guarantee',
-			body: 'Full refund if you do not pass the exam you studied for',
+			title: 'Pass guarantee*',
+			body: 'Don’t pass the exam you studied for? Keep full access free until your next sitting',
+			terms:
+				'*Send your result within 30 days of release for up to 6 months free.',
 		},
 	},
 };
@@ -328,7 +334,7 @@ export const faq = {
 		{
 			question: 'How does the pass guarantee work?',
 			answer: [
-				'If you study with Rapid Sequence and do not pass the exam you prepared for, we refund your subscription. Full terms will be published before launch.',
+				'If you study with Rapid Sequence and do not pass the exam you prepared for, you keep full access free until your next sitting, monthly vivas included. Full terms will be published before launch.',
 			],
 		},
 		{
@@ -342,7 +348,7 @@ export const faq = {
 
 export const finalCta = {
 	kicker: 'Get started',
-	title: 'Pass first time. Or it’s free.',
+	title: 'Pass first time. Or keep studying free.',
 	body: 'Set up your exam in under two minutes.',
 };
 

@@ -34,7 +34,7 @@ import type {
 } from './vivaShapes';
 
 // One cap for everyone until plans exist.
-const VIVAS_PER_MONTH = 10;
+const VIVAS_PER_MONTH = 7;
 
 // Marking normally takes a minute or two; past this it is assumed lost (a
 // restart or a stopped machine) and started again.
