@@ -14,32 +14,13 @@ import {
 	readingPath,
 	scopePath,
 } from '@/study/paths';
+import { createQuizRun, finishQuiz } from '@/study/quiz-run';
 import type { McqQuestion, OptionKey, QuizScope } from '@/study/types';
 import { saveAttempt, useCourse } from '@/study/wiring';
 import { ChevronLeft } from 'lucide-react';
-import { useEffect, useReducer } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-
-interface RunnerState {
-	index: number;
-	answers: Partial<Record<string, OptionKey>>;
-}
-
-type RunnerAction =
-	| { type: 'select'; questionId: string; key: OptionKey }
-	| { type: 'goto'; index: number };
-
-function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
-	switch (action.type) {
-		case 'select':
-			return {
-				...state,
-				answers: { ...state.answers, [action.questionId]: action.key },
-			};
-		case 'goto':
-			return { ...state, index: action.index };
-	}
-}
+import { useStore } from 'zustand';
 
 const OPTION_KEYS: readonly string[] = ['A', 'B', 'C', 'D', 'E'];
 
@@ -55,30 +36,18 @@ function QuizRunner({
 }: { scope: QuizScope; questions: McqQuestion[] }) {
 	const course = useCourse();
 	const navigate = useNavigate();
-	const [state, dispatch] = useReducer(runnerReducer, {
-		index: 0,
-		answers: {},
-	});
+	const [run] = useState(() => createQuizRun(questions));
+	const state = useStore(run);
+	const { goto, select } = state;
 	const question = questions[state.index];
 	const answeredCount = questions.filter((q) => state.answers[q.id]).length;
 	const unanswered = questions.length - answeredCount;
 	const isLast = state.index === questions.length - 1;
 
-	const goto = (index: number) => {
-		if (index >= 0 && index < questions.length)
-			dispatch({ type: 'goto', index });
-	};
-
 	const submit = () => {
-		const id = crypto.randomUUID();
-		saveAttempt(course, {
-			id,
-			scope,
-			questionIds: questions.map((q) => q.id),
-			answers: state.answers,
-			completedAt: new Date().toISOString(),
-		});
-		navigate(attemptPath(id), { replace: true });
+		const attempt = finishQuiz(state, scope);
+		saveAttempt(course, attempt);
+		navigate(attemptPath(attempt.id), { replace: true });
 	};
 
 	useEffect(() => {
@@ -88,11 +57,7 @@ function QuizRunner({
 			const inRadio = event.target instanceof HTMLInputElement;
 			const key = event.key.toUpperCase();
 			if (OPTION_KEYS.includes(key)) {
-				dispatch({
-					type: 'select',
-					questionId: question.id,
-					key: key as OptionKey,
-				});
+				select(question.id, key as OptionKey);
 			} else if (!inRadio && event.key === 'ArrowRight') {
 				goto(state.index + 1);
 			} else if (!inRadio && event.key === 'ArrowLeft') {
@@ -160,13 +125,7 @@ function QuizRunner({
 									name={question.id}
 									value={option.key}
 									checked={selected}
-									onChange={() =>
-										dispatch({
-											type: 'select',
-											questionId: question.id,
-											key: option.key,
-										})
-									}
+									onChange={() => select(question.id, option.key)}
 									className="sr-only"
 								/>
 								<span
