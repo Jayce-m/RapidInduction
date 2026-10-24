@@ -1,98 +1,23 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { memoryStorage } from '@/lib/storage';
 import {
+	ATTEMPTS_KEY,
 	bestScore,
 	percent,
 	sameScope,
 	scoreOf,
 	topicAccuracy,
 } from './attempts';
+import { createAttemptsStore } from './attempts.store';
 import {
 	chapterNumber,
-	indexCourse,
 	parseScope,
 	questionsForScope,
 	scopeTitle,
 } from './course';
+import { attempt, course } from './test-course';
 import type { Chapter, McqQuestion, QuizAttempt } from './types';
-import { saveAttempt } from './wiring';
-
-function mcq(id: string, topicId: string): McqQuestion {
-	return {
-		id,
-		topicId,
-		stem: `Stem ${id}`,
-		options: [
-			{ key: 'A', text: 'a' },
-			{ key: 'B', text: 'b' },
-		],
-		correct: 'A',
-		explanation: '',
-	};
-}
-
-const reading = {
-	examCues: [],
-	keyStatement: '',
-	approach: [],
-	pitfalls: '',
-	references: [],
-	relatedTopicIds: [],
-};
-
-const chapters: Chapter[] = [
-	{
-		id: 'airway',
-		track: 'primary',
-		title: 'Airway',
-		topics: [
-			{
-				id: 'intubation',
-				title: 'Intubation',
-				reading,
-				mcqs: [mcq('q1', 'intubation'), mcq('q2', 'intubation')],
-				saqs: [],
-			},
-			{
-				id: 'extubation',
-				title: 'Extubation',
-				reading,
-				mcqs: [mcq('q3', 'extubation')],
-				saqs: [],
-			},
-		],
-	},
-	{
-		id: 'renal',
-		track: 'final',
-		title: 'Renal',
-		topics: [
-			{
-				id: 'aki',
-				title: 'AKI',
-				reading,
-				mcqs: [mcq('q4', 'aki')],
-				saqs: [],
-			},
-		],
-	},
-];
-
-const course = indexCourse(chapters);
-
-function attempt(
-	answers: QuizAttempt['answers'],
-	overrides: Partial<QuizAttempt> = {},
-): QuizAttempt {
-	return {
-		id: 'a1',
-		scope: { kind: 'chapter', chapterId: 'airway' },
-		questionIds: ['q1', 'q2', 'q3'],
-		answers,
-		completedAt: '2026-10-01T00:00:00.000Z',
-		...overrides,
-	};
-}
 
 test('parseScope accepts only scopes in the course', () => {
 	assert.deepEqual(parseScope(course, 'chapter', 'airway'), {
@@ -164,21 +89,16 @@ test('scopes match on kind and id', () => {
 });
 
 test('saving an attempt keeps stored attempts that still resolve and drops the rest', () => {
-	const STORAGE_KEY = 'rapidinduction.attempts.v1';
 	const stale = attempt({}, { id: 'stale', questionIds: ['gone'] });
 	const kept = attempt({ q1: 'A' }, { id: 'kept' });
-	const store = new Map([[STORAGE_KEY, JSON.stringify([kept, stale])]]);
-	Object.assign(globalThis, {
-		localStorage: {
-			getItem: (key: string) => store.get(key) ?? null,
-			setItem: (key: string, value: string) => store.set(key, value),
-		},
+	const storage = memoryStorage({
+		[ATTEMPTS_KEY]: JSON.stringify([kept, stale]),
 	});
 
 	const added = attempt({ q4: 'A' }, { id: 'added', questionIds: ['q4'] });
-	saveAttempt(course, added);
+	createAttemptsStore(storage).getState().save(course, added);
 
-	const saved: QuizAttempt[] = JSON.parse(store.get(STORAGE_KEY) ?? '[]');
+	const saved: QuizAttempt[] = JSON.parse(storage.data.get(ATTEMPTS_KEY) ?? '[]');
 	assert.deepEqual(
 		saved.map((a) => a.id),
 		['kept', 'added'],
