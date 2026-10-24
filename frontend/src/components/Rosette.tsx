@@ -31,13 +31,18 @@ export function Rosette({
 	score,
 	className,
 	textClassName,
-}: { score: number; className?: string; textClassName?: string }) {
+}: {
+	/** null for a result that isn't in yet. */
+	score: number | null;
+	className?: string;
+	textClassName?: string;
+}) {
 	const id = useId();
-	const tone = TONES[score > 0 ? 'gold' : 'grey'];
+	const tone = TONES[score !== null && score > 0 ? 'gold' : 'grey'];
 	return (
 		<span
 			role="img"
-			aria-label={`Score ${score}`}
+			aria-label={score === null ? 'Not scored' : `Score ${score}`}
 			className={cn('relative inline-flex size-10 shrink-0', className)}
 		>
 			<svg viewBox="0 0 100 100" aria-hidden="true" className="size-full">
@@ -72,7 +77,7 @@ export function Rosette({
 					textClassName,
 				)}
 			>
-				{score}
+				{score ?? '–'}
 			</span>
 		</span>
 	);

@@ -1,23 +1,66 @@
 import { WaveBars } from '@/components/ExaminerOrb';
-import { Segmented } from '@/components/Segmented';
+import { type SegmentOption, Segmented } from '@/components/Segmented';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { MODE_OPTIONS } from '@/pages/viva/modeOptions';
 import {
+	EXAMINER_STYLES,
 	type ExaminerStyle,
 	type ResponseMode,
 	STYLE_COPY,
-	stationById,
-	vivaStations,
-} from '@/placeholder/viva';
-import { Check, Mic, MicOff, X } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
+	VIVA_LENGTHS,
+	type VivaLength,
+	vivaApi,
+} from '@/viva/model';
+import { vivaLivePath } from '@/viva/paths';
+import { useQuery } from '@tanstack/react-query';
+import { Check, Keyboard, type LucideIcon, Mic, MicOff, X } from 'lucide-react';
+import { type ReactNode, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
-const STYLES: ExaminerStyle[] = ['supportive', 'standard', 'probing'];
-const LENGTHS = [8, 12, 15];
+const MODE_OPTIONS: SegmentOption<ResponseMode>[] = [
+	{ value: 'voice', label: 'Voice', icon: Mic },
+	{ value: 'text', label: 'Text', icon: Keyboard },
+];
+const LENGTH_OPTIONS: SegmentOption<VivaLength>[] = VIVA_LENGTHS.map(
+	(length) => ({ value: length, label: `${length} min` }),
+);
 
-type MicCheck = 'untested' | 'testing' | 'ready';
+type MicCheck = 'untested' | 'testing' | 'ready' | 'denied';
+
+const MIC_COPY: Record<
+	MicCheck,
+	{ icon: LucideIcon; title: string; hint: string; action?: string }
+> = {
+	untested: {
+		icon: MicOff,
+		title: 'Microphone not tested',
+		hint: 'Your browser will ask for permission.',
+		action: 'Test microphone',
+	},
+	testing: {
+		icon: Mic,
+		title: 'Allow microphone access…',
+		hint: 'Your browser will ask for permission.',
+	},
+	ready: { icon: Mic, title: 'Microphone ready', hint: 'Default input' },
+	denied: {
+		icon: MicOff,
+		title: 'No microphone access',
+		hint: 'Allow the microphone in your browser settings, or answer by text.',
+		action: 'Try again',
+	},
+};
+
+// Asking for the microphone once here means the viva starts without a prompt.
+async function checkMicrophone(): Promise<boolean> {
+	try {
+		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		for (const track of stream.getTracks()) track.stop();
+		return true;
+	} catch {
+		return false;
+	}
+}
 
 function SetupCard({
 	title,
@@ -75,6 +118,7 @@ function MicCheckPanel({
 	state,
 	onTest,
 }: { state: MicCheck; onTest: () => void }) {
+	const copy = MIC_COPY[state];
 	return (
 		<div className="flex flex-wrap items-center gap-4 rounded-xl border bg-white p-4">
 			<span
@@ -85,29 +129,15 @@ function MicCheckPanel({
 						: 'bg-secondary text-muted-foreground',
 				)}
 			>
-				{state === 'untested' ? (
-					<MicOff className="size-4" strokeWidth={1.6} />
-				) : (
-					<Mic className="size-4" strokeWidth={1.6} />
-				)}
+				<copy.icon className="size-4" strokeWidth={1.6} />
 			</span>
 			<div className="min-w-0 flex-1">
-				<p className="text-sm font-medium">
-					{state === 'ready'
-						? 'Microphone ready'
-						: state === 'testing'
-							? 'Say something…'
-							: 'Microphone not tested'}
-				</p>
-				<p className="text-xs text-muted-foreground">
-					{state === 'ready'
-						? 'Default input · Levels look good'
-						: 'Speak normally; we only check the level.'}
-				</p>
+				<p className="text-sm font-medium">{copy.title}</p>
+				<p className="text-xs text-muted-foreground">{copy.hint}</p>
 			</div>
-			{state === 'untested' ? (
+			{copy.action ? (
 				<Button variant="pill" size="sm" onClick={onTest}>
-					Test microphone
+					{copy.action}
 				</Button>
 			) : (
 				<WaveBars
@@ -122,22 +152,25 @@ function MicCheckPanel({
 export function VivaSetupPage() {
 	const navigate = useNavigate();
 	const [search] = useSearchParams();
-	const requested = search.get('station');
-	const [stationId, setStationId] = useState(
-		requested && stationById.has(requested) ? requested : vivaStations[0].id,
-	);
+	const { data: stations = [] } = useQuery({
+		queryKey: ['viva-stations'],
+		queryFn: vivaApi.stations,
+	});
+	const [picked, setStationId] = useState(search.get('station'));
+	const stationId = stations.some((station) => station.id === picked)
+		? picked
+		: stations[0]?.id;
 	const [style, setStyle] = useState<ExaminerStyle>('standard');
-	const [minutes, setMinutes] = useState(12);
+	const [minutes, setMinutes] = useState<VivaLength>(12);
 	const [mode, setMode] = useState<ResponseMode>('voice');
 	const [mic, setMic] = useState<MicCheck>('untested');
 
-	useEffect(() => {
-		if (mic !== 'testing') return;
-		const timer = setTimeout(() => setMic('ready'), 1800);
-		return () => clearTimeout(timer);
-	}, [mic]);
+	const testMic = async () => {
+		setMic('testing');
+		setMic((await checkMicrophone()) ? 'ready' : 'denied');
+	};
 
-	const blocked = mode === 'voice' && mic !== 'ready';
+	const micBlocked = mode === 'voice' && mic !== 'ready';
 
 	return (
 		<div className="flex min-h-dvh flex-col bg-background">
@@ -166,8 +199,8 @@ export function VivaSetupPage() {
 					</h2>
 					<p className="mt-1 text-sm text-muted-foreground">
 						Choose a station and how you want to be examined. The examiner reads
-						the stem, shows exhibits when they matter and follows up on what you
-						say.
+						the scenario, shows exhibits when they matter and follows up on what
+						you say.
 					</p>
 
 					<div className="mt-10 space-y-4">
@@ -176,7 +209,7 @@ export function VivaSetupPage() {
 							description="Each station runs through assessment, management and complications."
 						>
 							<div className="grid gap-2 sm:grid-cols-2">
-								{vivaStations.map((station) => (
+								{stations.map((station) => (
 									<ChoiceCard
 										key={station.id}
 										name="station"
@@ -197,7 +230,7 @@ export function VivaSetupPage() {
 							description="How hard the examiner pushes when your answer is incomplete."
 						>
 							<div className="grid gap-2 sm:grid-cols-3">
-								{STYLES.map((option) => (
+								{EXAMINER_STYLES.map((option) => (
 									<ChoiceCard
 										key={option}
 										name="style"
@@ -222,10 +255,7 @@ export function VivaSetupPage() {
 							<div className="flex flex-wrap gap-6">
 								<Segmented
 									label="Length"
-									options={LENGTHS.map((length) => ({
-										value: length,
-										label: `${length} min`,
-									}))}
+									options={LENGTH_OPTIONS}
 									value={minutes}
 									onChange={setMinutes}
 								/>
@@ -238,24 +268,23 @@ export function VivaSetupPage() {
 							</div>
 							{mode === 'voice' && (
 								<div className="mt-4">
-									<MicCheckPanel state={mic} onTest={() => setMic('testing')} />
+									<MicCheckPanel state={mic} onTest={testMic} />
 								</div>
 							)}
 						</SetupCard>
 					</div>
 
 					<div className="mt-auto flex items-center justify-end gap-3 pt-10 pb-2">
-						{blocked && (
+						{stationId && micBlocked && (
 							<span className="text-sm text-muted-foreground">
 								Test your microphone first
 							</span>
 						)}
 						<Button
-							disabled={blocked}
+							disabled={!stationId || micBlocked}
 							onClick={() =>
-								navigate(
-									`/viva/demo/live?station=${stationId}&mode=${mode}&minutes=${minutes}`,
-								)
+								stationId &&
+								navigate(vivaLivePath({ stationId, style, mode, minutes }))
 							}
 							className="h-9"
 						>

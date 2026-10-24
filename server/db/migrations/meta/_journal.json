@@ -36,6 +36,20 @@
       "when": 1792777012610,
       "tag": "0004_question_bank",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792791843537,
+      "tag": "0005_viva",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792835507243,
+      "tag": "0006_viva_lifecycle",
+      "breakpoints": true
     }
   ]
 }

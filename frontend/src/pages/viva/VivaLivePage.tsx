@@ -1,156 +1,67 @@
 import { ExaminerOrb, type OrbState, WaveBars } from '@/components/ExaminerOrb';
-import { Segmented } from '@/components/Segmented';
 import { Button } from '@/components/ui/button';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogTitle,
-} from '@/components/ui/dialog';
 import { clock } from '@/lib/time';
 import { cn } from '@/lib/utils';
-import { MODE_OPTIONS } from '@/pages/viva/modeOptions';
 import {
-	type ResponseMode,
-	type TranscriptTurn,
-	type VivaScript,
-	placeholderScript,
-	stationById,
-} from '@/placeholder/viva';
+	type StartedViva,
+	type VivaExhibit,
+	type VivaOptions,
+	type VivaTurn,
+	vivaApi,
+} from '@/viva/model';
+import {
+	parseVivaOptions,
+	vivaFeedbackPath,
+	vivaSetupPath,
+} from '@/viva/paths';
+import { ConversationProvider, useConversation } from '@elevenlabs/react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
 	ArrowRight,
-	Check,
 	ChevronRight,
 	FileText,
 	Lock,
 	Mic,
 	MicOff,
-	Repeat2,
-	SkipForward,
 	X,
 } from 'lucide-react';
-import { type Dispatch, useEffect, useReducer, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 
-type Stage =
-	| { kind: 'intro' }
-	| { kind: 'asking'; q: number; shown: number }
-	| { kind: 'answering'; q: number; draft: string; heard: number }
-	| { kind: 'thinking'; q: number }
-	| { kind: 'finished' };
+type Phase = 'ready' | 'connecting' | 'live' | 'ending' | 'end-failed';
 
-interface LiveState {
-	stage: Stage;
-	mode: ResponseMode;
-	micOn: boolean;
-	transcript: TranscriptTurn[];
-	revealed: boolean;
+// The examiner is told the length; this only stops a viva that runs well over.
+const GRACE_SECONDS = 60;
+
+function roomView({
+	phase,
+	speaking,
+	voice,
+	muted,
+	examiner,
+}: {
+	phase: Phase;
+	speaking: boolean;
+	voice: boolean;
+	muted: boolean;
+	examiner: string;
+}): { orb: OrbState; status: string } {
+	if (phase === 'ready') return { orb: 'idle', status: 'Waiting to begin' };
+	if (phase === 'connecting') {
+		return { orb: 'thinking', status: 'Connecting to the examiner' };
+	}
+	if (phase === 'ending') return { orb: 'thinking', status: 'Ending the viva' };
+	if (phase === 'end-failed') {
+		return { orb: 'idle', status: "Couldn't end the viva" };
+	}
+	if (speaking) return { orb: 'speaking', status: `${examiner} is speaking` };
+	if (!voice) return { orb: 'idle', status: 'Type your answer' };
+	if (muted) return { orb: 'idle', status: 'Microphone muted' };
+	return { orb: 'listening', status: 'Listening to you' };
 }
 
-type Action =
-	| { type: 'begin' }
-	| { type: 'tick'; at: number }
-	| { type: 'draft'; text: string }
-	| { type: 'toggleMic' }
-	| { type: 'mode'; mode: ResponseMode }
-	| { type: 'submit'; at: number; text: string }
-	| { type: 'repeat' }
-	| { type: 'advance' }
-	| { type: 'end' };
-
-const CHARS_PER_TICK = 3;
-
-function makeReducer(script: VivaScript) {
-	const { questions, exhibit } = script;
-	const turn = (
-		speaker: TranscriptTurn['speaker'],
-		text: string,
-		at: number,
-		index: number,
-	): TranscriptTurn => ({ id: `${speaker}-${index}`, speaker, text, at });
-
-	return function reduce(state: LiveState, action: Action): LiveState {
-		const { stage } = state;
-		switch (action.type) {
-			case 'begin':
-				return { ...state, stage: { kind: 'asking', q: 0, shown: 0 } };
-			case 'tick': {
-				if (stage.kind === 'asking') {
-					const prompt = questions[stage.q].prompt;
-					const shown = stage.shown + CHARS_PER_TICK;
-					if (shown < prompt.length)
-						return { ...state, stage: { ...stage, shown } };
-					return {
-						...state,
-						revealed:
-							state.revealed || questions[stage.q].id === exhibit.revealedBy,
-						transcript: [
-							...state.transcript,
-							turn('examiner', prompt, action.at, state.transcript.length),
-						],
-						stage: { kind: 'answering', q: stage.q, draft: '', heard: 0 },
-					};
-				}
-				// Simulated speech-to-text: the sample answer arrives a word at a time.
-				if (
-					stage.kind === 'answering' &&
-					state.mode === 'voice' &&
-					state.micOn
-				) {
-					const words = questions[stage.q].sampleAnswer.split(' ');
-					if (stage.heard >= words.length) return state;
-					return {
-						...state,
-						stage: {
-							...stage,
-							heard: stage.heard + 1,
-							draft: words.slice(0, stage.heard + 1).join(' '),
-						},
-					};
-				}
-				return state;
-			}
-			case 'draft':
-				return stage.kind === 'answering'
-					? { ...state, stage: { ...stage, draft: action.text } }
-					: state;
-			case 'toggleMic':
-				return { ...state, micOn: !state.micOn };
-			case 'mode':
-				return { ...state, mode: action.mode, micOn: action.mode === 'voice' };
-			case 'submit':
-				if (stage.kind !== 'answering') return state;
-				return {
-					...state,
-					transcript: [
-						...state.transcript,
-						turn(
-							'candidate',
-							action.text.trim() || '(Passed)',
-							action.at,
-							state.transcript.length,
-						),
-					],
-					stage: { kind: 'thinking', q: stage.q },
-				};
-			case 'repeat':
-				return stage.kind === 'answering'
-					? { ...state, stage: { kind: 'asking', q: stage.q, shown: 0 } }
-					: state;
-			case 'advance':
-				if (stage.kind !== 'thinking') return state;
-				return {
-					...state,
-					stage:
-						stage.q + 1 < questions.length
-							? { kind: 'asking', q: stage.q + 1, shown: 0 }
-							: { kind: 'finished' },
-				};
-			case 'end':
-				return { ...state, stage: { kind: 'finished' } };
-		}
-	};
-}
+const message = (cause: unknown) =>
+	cause instanceof Error ? cause.message : String(cause);
 
 function useElapsed(running: boolean): number {
 	const [seconds, setSeconds] = useState(0);
@@ -162,220 +73,47 @@ function useElapsed(running: boolean): number {
 	return seconds;
 }
 
-function orbState(stage: Stage, micOn: boolean, mode: ResponseMode): OrbState {
-	switch (stage.kind) {
-		case 'asking':
-			return 'speaking';
-		case 'answering':
-			return mode === 'voice' && micOn ? 'listening' : 'idle';
-		case 'thinking':
-			return 'thinking';
-		default:
-			return 'idle';
-	}
-}
-
-function PhaseStepper({
-	script,
-	current,
-}: { script: VivaScript; current: number }) {
-	const activePhase =
-		current < 0
-			? -1
-			: script.phases.findIndex(
-					(p) => p.id === script.questions[current].phaseId,
-				);
-	return (
-		<ol
-			aria-label="Viva progress"
-			className="flex flex-wrap items-center gap-x-1.5 gap-y-2 text-xs"
-		>
-			{script.phases.map((phase, i) => (
-				<li key={phase.id} className="flex items-center gap-1.5">
-					{i > 0 && (
-						<ChevronRight className="size-3 text-muted-foreground/60" />
-					)}
-					<span
-						aria-current={i === activePhase ? 'step' : undefined}
-						className={cn(
-							'inline-flex items-center gap-1 rounded-full px-2.5 py-1',
-							i < activePhase && 'text-muted-foreground',
-							i === activePhase && 'bg-chip text-chip-foreground',
-							i > activePhase && 'text-muted-foreground/70',
-						)}
-					>
-						{i < activePhase && <Check className="size-3 text-success" />}
-						{phase.title}
-					</span>
-				</li>
-			))}
-		</ol>
-	);
-}
-
-function StatusLine({
-	state,
-	examiner,
-}: { state: LiveState; examiner: string }) {
-	const { stage } = state;
-	const text =
-		stage.kind === 'intro'
-			? 'Waiting to begin'
-			: stage.kind === 'asking'
-				? `${examiner} is asking`
-				: stage.kind === 'thinking'
-					? `${examiner} is listening back`
-					: stage.kind === 'finished'
-						? 'Viva complete'
-						: state.mode === 'voice' && state.micOn
-							? 'Listening to you'
-							: state.mode === 'voice'
-								? 'Microphone muted'
-								: 'Type your answer';
-	return (
-		<p
-			aria-live="polite"
-			className="text-xs tracking-wide text-muted-foreground uppercase"
-		>
-			{text}
-		</p>
-	);
-}
-
-function AnswerControls({
-	state,
-	dispatch,
-	onSubmit,
-}: {
-	state: LiveState;
-	dispatch: Dispatch<Action>;
-	onSubmit: (text: string) => void;
-}) {
-	const { stage } = state;
-	if (stage.kind !== 'answering') return null;
-	const voice = state.mode === 'voice';
-	return (
-		<div className="w-full max-w-2xl">
-			{voice ? (
-				<div
-					aria-label="Live transcript"
-					className="min-h-[96px] rounded-xl border bg-white px-4 py-3 text-[15px] leading-6"
-				>
-					{stage.draft ? (
-						<span>
-							{stage.draft}
-							{state.micOn && (
-								<span className="ml-0.5 inline-block h-4 w-px translate-y-0.5 animate-pulse bg-foreground" />
-							)}
-						</span>
-					) : (
-						<span className="text-muted-foreground">
-							{state.micOn ? 'Start speaking…' : 'Unmute to answer'}
-						</span>
-					)}
-				</div>
-			) : (
-				<textarea
-					aria-label="Your answer"
-					value={stage.draft}
-					onChange={(event) =>
-						dispatch({ type: 'draft', text: event.target.value })
-					}
-					onKeyDown={(event) => {
-						if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-							onSubmit(stage.draft);
-						}
-					}}
-					placeholder="Answer as you would out loud…"
-					className="block min-h-[96px] w-full resize-none rounded-xl border bg-white px-4 py-3 text-[15px] leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-				/>
-			)}
-
-			<div className="mt-4 flex items-center justify-center gap-3">
-				<Button
-					variant="pill"
-					size="sm"
-					onClick={() => dispatch({ type: 'repeat' })}
-				>
-					<Repeat2 className="text-muted-foreground" />
-					Repeat
-				</Button>
-				{voice && (
-					<button
-						type="button"
-						aria-pressed={state.micOn}
-						aria-label={state.micOn ? 'Mute microphone' : 'Unmute microphone'}
-						onClick={() => dispatch({ type: 'toggleMic' })}
-						className={cn(
-							'flex size-14 items-center justify-center rounded-full transition-colors',
-							state.micOn
-								? 'border border-primary-border bg-primary text-primary-foreground shadow-primary-button'
-								: 'bg-white text-muted-foreground shadow-pill hover:bg-muted',
-						)}
-					>
-						{state.micOn ? (
-							<Mic className="size-5" strokeWidth={1.6} />
-						) : (
-							<MicOff className="size-5" strokeWidth={1.6} />
-						)}
-					</button>
-				)}
-				{stage.draft.trim() ? (
-					<Button size="sm" onClick={() => onSubmit(stage.draft)}>
-						I'm done
-						<ArrowRight />
-					</Button>
-				) : (
-					<Button variant="pill" size="sm" onClick={() => onSubmit('')}>
-						<SkipForward className="text-muted-foreground" />
-						Pass
-					</Button>
-				)}
-			</div>
-		</div>
-	);
-}
-
-function StemCard({ stem, visible }: { stem: string; visible: boolean }) {
+function ScenarioCard({ scenario }: { scenario: string | undefined }) {
 	return (
 		<section className="rounded-xl border bg-card p-5">
 			<h2 className="flex items-center gap-2 text-sm font-medium">
 				<FileText className="size-4 text-primary" strokeWidth={1.6} />
-				Stem
+				Scenario
 			</h2>
 			<p
 				className={cn(
 					'mt-3 text-[15px] leading-6',
-					!visible && 'blur-[5px] select-none',
+					!scenario && 'text-muted-foreground',
 				)}
 			>
-				{stem}
+				{scenario ?? 'The examiner reads the scenario when the viva begins.'}
 			</p>
 		</section>
 	);
 }
 
-function ExhibitCard({
-	script,
-	revealed,
-}: { script: VivaScript; revealed: boolean }) {
-	const { exhibit } = script;
+function ExhibitCard({ exhibits }: { exhibits: VivaExhibit[] }) {
 	return (
 		<section className="rounded-xl border bg-card p-5">
 			<h2 className="flex items-center gap-2 text-sm font-medium">
-				{revealed ? (
+				{exhibits.length > 0 ? (
 					<FileText className="size-4 text-primary" strokeWidth={1.6} />
 				) : (
 					<Lock className="size-4 text-muted-foreground" strokeWidth={1.6} />
 				)}
-				Exhibit
+				Exhibits
 			</h2>
-			{revealed ? (
-				<>
-					<p className="mt-1 text-xs text-muted-foreground">
+			{exhibits.length === 0 && (
+				<p className="mt-2 text-[13px] text-muted-foreground">
+					The examiner will show investigations when they become relevant.
+				</p>
+			)}
+			{exhibits.map((exhibit) => (
+				<div key={exhibit.id} className="mt-3">
+					<p className="text-xs text-muted-foreground">
 						{exhibit.title} · {exhibit.caption}
 					</p>
-					<table className="mt-3 w-full text-sm">
+					<table className="mt-2 w-full text-sm">
 						<tbody className="divide-y">
 							{exhibit.rows.map((row) => (
 								<tr key={row.label}>
@@ -397,12 +135,8 @@ function ExhibitCard({
 							))}
 						</tbody>
 					</table>
-				</>
-			) : (
-				<p className="mt-2 text-[13px] text-muted-foreground">
-					The examiner will show investigations when they become relevant.
-				</p>
-			)}
+				</div>
+			))}
 		</section>
 	);
 }
@@ -410,7 +144,7 @@ function ExhibitCard({
 function TranscriptCard({
 	transcript,
 	examiner,
-}: { transcript: TranscriptTurn[]; examiner: string }) {
+}: { transcript: VivaTurn[]; examiner: string }) {
 	return (
 		<section className="flex min-h-0 flex-1 flex-col rounded-xl border bg-card">
 			<h2 className="border-b px-5 py-3 text-sm font-medium">Transcript</h2>
@@ -420,18 +154,18 @@ function TranscriptCard({
 						Everything said in the viva appears here.
 					</p>
 				)}
-				{transcript.map((turn) => (
-					<div key={turn.id}>
+				{transcript.map((turn, i) => (
+					// Turns are only ever appended, so the index is stable.
+					// biome-ignore lint/suspicious/noArrayIndexKey: append-only list
+					<div key={i}>
 						<p className="flex items-center gap-2 text-xs text-muted-foreground">
 							<span
 								className={cn(
 									'font-medium',
-									turn.speaker === 'examiner'
-										? 'text-primary'
-										: 'text-foreground',
+									turn.role === 'examiner' ? 'text-primary' : 'text-foreground',
 								)}
 							>
-								{turn.speaker === 'examiner' ? examiner : 'You'}
+								{turn.role === 'examiner' ? examiner : 'You'}
 							</span>
 							<span className="tabular-nums">{clock(turn.at)}</span>
 						</p>
@@ -451,102 +185,179 @@ function TranscriptCard({
 	);
 }
 
-function FinishedDialog({
-	open,
-	onReview,
-}: { open: boolean; onReview: () => void }) {
-	const [marking, setMarking] = useState(true);
-	useEffect(() => {
-		if (!open) return;
-		const timer = setTimeout(() => setMarking(false), 2200);
-		return () => clearTimeout(timer);
-	}, [open]);
+function TextAnswer({
+	onSend,
+	onTyping,
+}: { onSend: (text: string) => void; onTyping: () => void }) {
+	const [draft, setDraft] = useState('');
+	const send = () => {
+		if (!draft.trim()) return;
+		onSend(draft.trim());
+		setDraft('');
+	};
 	return (
-		<Dialog open={open}>
-			<DialogContent
-				className="max-w-sm justify-items-center text-center [&>button:last-child]:hidden"
-				onEscapeKeyDown={(event) => event.preventDefault()}
-				onInteractOutside={(event) => event.preventDefault()}
-			>
-				<ExaminerOrb
-					state={marking ? 'thinking' : 'idle'}
-					className="size-16"
-				/>
-				<div>
-					<DialogTitle>
-						{marking ? 'Marking your viva…' : 'Viva complete'}
-					</DialogTitle>
-					<DialogDescription className="mt-1">
-						{marking
-							? 'Checking your answers against the points that score.'
-							: 'Your feedback and annotated transcript are ready.'}
-					</DialogDescription>
-				</div>
-				<Button disabled={marking} onClick={onReview}>
-					See feedback
+		<div className="w-full max-w-2xl">
+			<textarea
+				aria-label="Your answer"
+				value={draft}
+				onChange={(event) => {
+					setDraft(event.target.value);
+					onTyping();
+				}}
+				onKeyDown={(event) => {
+					if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) send();
+				}}
+				placeholder="Answer as you would out loud…"
+				className="block min-h-[96px] w-full resize-none rounded-xl border bg-white px-4 py-3 text-[15px] leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+			/>
+			<div className="mt-4 flex justify-center">
+				<Button size="sm" disabled={!draft.trim()} onClick={send}>
+					Send
+					<ArrowRight />
 				</Button>
-			</DialogContent>
-		</Dialog>
+			</div>
+		</div>
 	);
 }
 
-export function VivaRoom({
-	script,
-	title,
-	minutes,
-	initialMode,
-	onFinish,
-}: {
-	script: VivaScript;
-	title: string;
-	minutes: number;
-	initialMode: ResponseMode;
-	onFinish: () => void;
-}) {
-	const [reduce] = useState(() => makeReducer(script));
-	const [state, dispatch] = useReducer(reduce, {
-		stage: { kind: 'intro' },
-		mode: initialMode,
-		micOn: initialMode === 'voice',
-		transcript: [],
-		revealed: false,
+function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const [phase, setPhase] = useState<Phase>('ready');
+	const [viva, setViva] = useState<StartedViva | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const [transcript, setTranscript] = useState<VivaTurn[]>([]);
+	const [shown, setShown] = useState<string[]>([]);
+	const [muted, setMuted] = useState(false);
+	// The SDK holds on to client tools from when the session starts, and a
+	// connection can fail before React re-renders, so the session lives in refs.
+	const started = useRef<StartedViva | null>(null);
+	const conversationId = useRef<string | null>(null);
+	const finishing = useRef(false);
+
+	const elapsed = useElapsed(phase === 'live');
+	const voice = options.mode === 'voice';
+
+	const addTurn = (role: VivaTurn['role'], text: string) =>
+		setTranscript((turns) => [...turns, { role, text, at: elapsed }]);
+
+	const conversation = useConversation({
+		micMuted: muted,
+		onConnect: ({ conversationId: id }) => {
+			const viva = started.current;
+			if (!viva) return;
+			conversationId.current = id;
+			vivaApi.connect(viva.id, id).then(
+				() => setPhase('live'),
+				(cause) => abandon(message(cause)),
+			);
+		},
+		onMessage: ({ message, role }) => {
+			// Typed answers are added when sent, so only spoken ones arrive here.
+			if (role === 'user' && !voice) return;
+			addTurn(role === 'agent' ? 'examiner' : 'candidate', message);
+		},
+		onDisconnect: () => {
+			if (conversationId.current) void finish();
+			else abandon("Couldn't connect to the examiner. Please try again.");
+		},
+		onError: (error) => {
+			if (conversationId.current) setError(error);
+			else abandon(error);
+		},
+		clientTools: {
+			show_exhibit: ({ exhibit_id }: { exhibit_id?: unknown }) => {
+				const exhibits = started.current?.exhibits ?? [];
+				const exhibit = exhibits.find((e) => e.id === exhibit_id);
+				if (!exhibit) {
+					const ids = exhibits.map((e) => `"${e.id}"`).join(', ');
+					return `No exhibit with id "${String(exhibit_id)}". Pass exhibit_id as one of: ${ids || 'none for this station'}.`;
+				}
+				setShown((ids) =>
+					ids.includes(exhibit.id) ? ids : [...ids, exhibit.id],
+				);
+				return `${exhibit.title} is now in front of the candidate.`;
+			},
+		},
 	});
-	const { stage } = state;
-	const running = stage.kind !== 'intro' && stage.kind !== 'finished';
-	const elapsed = useElapsed(running);
-	const elapsedRef = useRef(elapsed);
-	elapsedRef.current = elapsed;
-	const overtime = elapsed > minutes * 60;
 
-	const animating =
-		stage.kind === 'asking' ||
-		(stage.kind === 'answering' && state.mode === 'voice' && state.micOn);
+	async function begin() {
+		setError(null);
+		setPhase('connecting');
+		try {
+			const viva = await vivaApi.start(options);
+			started.current = viva;
+			setViva(viva);
+			conversation.startSession({
+				signedUrl: viva.signedUrl,
+				dynamicVariables: viva.dynamicVariables,
+				textOnly: !voice,
+				stripAudioTags: true,
+			});
+		} catch (cause) {
+			setError(message(cause));
+			setPhase('ready');
+		}
+	}
+
+	// A viva that never connected is thrown away, so trying again doesn't use
+	// up another one.
+	function abandon(reason: string) {
+		const viva = started.current;
+		if (!viva || finishing.current) return;
+		started.current = null;
+		conversationId.current = null;
+		conversation.endSession();
+		void vivaApi.discard(viva.id).catch(() => {});
+		setViva(null);
+		setTranscript([]);
+		setShown([]);
+		setError(reason);
+		setPhase('ready');
+	}
+
+	async function finish() {
+		const viva = started.current;
+		if (finishing.current || !viva) return;
+		finishing.current = true;
+		setPhase('ending');
+		conversation.endSession();
+		await submitEnd(viva.id);
+	}
+
+	// If this fails the viva is still marked once it is well past its length,
+	// but retrying gets the feedback sooner.
+	async function submitEnd(id: string) {
+		setError(null);
+		try {
+			await vivaApi.end(id);
+			void queryClient.invalidateQueries({ queryKey: ['vivas'] });
+			navigate(vivaFeedbackPath(id));
+		} catch (cause) {
+			setError(`Couldn't end the viva: ${message(cause)}`);
+			setPhase('end-failed');
+		}
+	}
+
+	const overrun =
+		phase === 'live' && elapsed > options.minutes * 60 + GRACE_SECONDS;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: finish is guarded against running twice
 	useEffect(() => {
-		if (!animating) return;
-		const speed = stage.kind === 'asking' ? 30 : 160;
-		const timer = setInterval(
-			() => dispatch({ type: 'tick', at: elapsedRef.current }),
-			speed,
-		);
-		return () => clearInterval(timer);
-	}, [animating, stage.kind]);
+		if (overrun) void finish();
+	}, [overrun]);
 
-	useEffect(() => {
-		if (stage.kind !== 'thinking') return;
-		const timer = setTimeout(() => dispatch({ type: 'advance' }), 1400);
-		return () => clearTimeout(timer);
-	}, [stage.kind]);
-
-	const current =
-		stage.kind === 'intro' || stage.kind === 'finished' ? -1 : stage.q;
-	const caption =
-		stage.kind === 'intro'
-			? `Good afternoon. I'm ${script.examinerName}. When you're ready, I'll read you the stem.`
-			: stage.kind === 'asking'
-				? script.questions[stage.q].prompt.slice(0, stage.shown)
-				: stage.kind === 'finished'
-					? 'Thank you, that is the end of the viva.'
-					: script.questions[stage.q].prompt;
+	const examiner = viva?.examinerName ?? 'Examiner';
+	const lastExaminerLine = transcript
+		.filter((turn) => turn.role === 'examiner')
+		.at(-1)?.text;
+	const { orb, status } = roomView({
+		phase,
+		speaking: conversation.isSpeaking,
+		voice,
+		muted,
+		examiner,
+	});
+	const exhibits = viva?.exhibits.filter((e) => shown.includes(e.id)) ?? [];
 
 	return (
 		<div className="flex min-h-dvh flex-col bg-background lg:h-dvh">
@@ -567,34 +378,22 @@ export function VivaRoom({
 					<span
 						className={cn(
 							'inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm tabular-nums shadow-pill',
-							overtime && 'text-destructive',
+							elapsed > options.minutes * 60 && 'text-destructive',
 						)}
 					>
 						<span
 							className={cn(
 								'size-2 rounded-full',
-								running
+								phase === 'live'
 									? 'animate-pulse bg-destructive'
 									: 'bg-muted-foreground/40',
 							)}
 						/>
-						{running ? 'Live' : 'Ready'} · {clock(elapsed)} /{' '}
-						{clock(minutes * 60)}
+						{phase === 'live' ? 'Live' : 'Ready'} · {clock(elapsed)} /{' '}
+						{clock(options.minutes * 60)}
 					</span>
-					<Segmented
-						label="Response mode"
-						iconOnly
-						options={MODE_OPTIONS}
-						value={state.mode}
-						onChange={(mode) => dispatch({ type: 'mode', mode })}
-						className="hidden sm:inline-flex"
-					/>
-					{running && (
-						<Button
-							variant="pill"
-							size="sm"
-							onClick={() => dispatch({ type: 'end' })}
-						>
+					{phase === 'live' && (
+						<Button variant="pill" size="sm" onClick={() => void finish()}>
 							End viva
 						</Button>
 					)}
@@ -606,65 +405,95 @@ export function VivaRoom({
 					aria-label="Examiner"
 					className="flex min-h-[560px] flex-col items-center overflow-y-auto rounded-2xl bg-card px-4 py-6 shadow-raised sm:px-8 lg:min-h-0"
 				>
-					<PhaseStepper script={script} current={current} />
 					<div className="flex w-full flex-1 flex-col items-center justify-center gap-5 py-6">
-						<ExaminerOrb
-							state={orbState(stage, state.micOn, state.mode)}
-							className="size-32 xl:size-40"
-						/>
+						<ExaminerOrb state={orb} className="size-32 xl:size-40" />
 						<div className="flex flex-col items-center gap-2">
-							<StatusLine state={state} examiner={script.examinerName} />
-							{stage.kind === 'answering' && state.mode === 'voice' && (
-								<WaveBars active={state.micOn} className="text-success" />
+							<p
+								aria-live="polite"
+								className="text-xs tracking-wide text-muted-foreground uppercase"
+							>
+								{status}
+							</p>
+							{phase === 'live' && voice && !conversation.isSpeaking && (
+								<WaveBars active={!muted} className="text-success" />
 							)}
 						</div>
 						<p className="min-h-[96px] max-w-2xl text-balance text-center font-display text-[22px] leading-8 sm:text-[26px] sm:leading-9">
-							{caption}
+							{lastExaminerLine ??
+								(phase === 'ready'
+									? "When you're ready, the examiner will read you the scenario."
+									: '')}
 						</p>
+						{error && (
+							<p role="alert" className="text-sm text-destructive">
+								{error}
+							</p>
+						)}
 					</div>
-					{stage.kind === 'intro' && (
-						<Button size="lg" onClick={() => dispatch({ type: 'begin' })}>
+					{phase === 'ready' && (
+						<Button size="lg" onClick={() => void begin()}>
 							<Mic strokeWidth={1.6} />
 							Begin viva
 						</Button>
 					)}
-					<AnswerControls
-						state={state}
-						dispatch={dispatch}
-						onSubmit={(text) =>
-							dispatch({ type: 'submit', at: elapsedRef.current, text })
-						}
-					/>
+					{phase === 'end-failed' && viva && (
+						<Button size="lg" onClick={() => void submitEnd(viva.id)}>
+							Try again
+						</Button>
+					)}
+					{phase === 'live' &&
+						(voice ? (
+							<button
+								type="button"
+								aria-pressed={!muted}
+								aria-label={muted ? 'Unmute microphone' : 'Mute microphone'}
+								onClick={() => setMuted((m) => !m)}
+								className={cn(
+									'flex size-14 items-center justify-center rounded-full transition-colors',
+									muted
+										? 'bg-white text-muted-foreground shadow-pill hover:bg-muted'
+										: 'border border-primary-border bg-primary text-primary-foreground shadow-primary-button',
+								)}
+							>
+								{muted ? (
+									<MicOff className="size-5" strokeWidth={1.6} />
+								) : (
+									<Mic className="size-5" strokeWidth={1.6} />
+								)}
+							</button>
+						) : (
+							<TextAnswer
+								onSend={(text) => {
+									addTurn('candidate', text);
+									conversation.sendUserMessage(text);
+								}}
+								onTyping={conversation.sendUserActivity}
+							/>
+						))}
 				</section>
 
 				<aside className="flex min-w-0 flex-col gap-3 lg:min-h-0">
-					<StemCard stem={script.stem} visible={stage.kind !== 'intro'} />
-					<ExhibitCard script={script} revealed={state.revealed} />
-					<TranscriptCard
-						transcript={state.transcript}
-						examiner={script.examinerName}
-					/>
+					<ScenarioCard scenario={viva?.scenario} />
+					<ExhibitCard exhibits={exhibits} />
+					<TranscriptCard transcript={transcript} examiner={examiner} />
 				</aside>
 			</div>
-
-			<FinishedDialog open={stage.kind === 'finished'} onReview={onFinish} />
 		</div>
 	);
 }
 
 export function VivaLivePage() {
-	const navigate = useNavigate();
 	const [search] = useSearchParams();
-	// Every station plays the same placeholder script, so the title follows the script.
-	const station = stationById.get(placeholderScript.stationId);
-	const minutes = Number(search.get('minutes')) || 12;
+	const options = parseVivaOptions(search);
+	const { data: stations } = useQuery({
+		queryKey: ['viva-stations'],
+		queryFn: vivaApi.stations,
+	});
+	if (!options) return <Navigate to={vivaSetupPath()} replace />;
+	const title = stations?.find((s) => s.id === options.stationId)?.title ?? '';
 	return (
-		<VivaRoom
-			script={placeholderScript}
-			title={station?.title ?? ''}
-			minutes={minutes}
-			initialMode={search.get('mode') === 'text' ? 'text' : 'voice'}
-			onFinish={() => navigate('/viva/demo/feedback')}
-		/>
+		<ConversationProvider>
+			<VivaRoom options={options} title={title} />
+		</ConversationProvider>
 	);
 }

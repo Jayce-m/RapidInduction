@@ -9,9 +9,10 @@ import {
 	STYLE_COPY,
 	type VivaStation,
 	type VivaSummary,
-	placeholderVivas,
-	vivaStations,
-} from '@/placeholder/viva';
+	vivaApi,
+} from '@/viva/model';
+import { vivaFeedbackPath, vivaSetupPath } from '@/viva/paths';
+import { useQuery } from '@tanstack/react-query';
 import { Clock, Mic } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -22,7 +23,7 @@ const STEPS = [
 	},
 	{
 		title: 'Talk it through',
-		body: 'An AI examiner reads the stem, shows exhibits and asks follow-ups out loud.',
+		body: 'An AI examiner reads the scenario, shows exhibits and asks follow-ups out loud.',
 	},
 	{
 		title: 'Get marked',
@@ -88,7 +89,7 @@ export function StationGrid({ stations }: { stations: VivaStation[] }) {
 						{station.blurb}
 					</p>
 					<Button variant="pill" size="sm" asChild className="mt-4 self-start">
-						<Link to={`/viva/new?station=${station.id}`}>
+						<Link to={vivaSetupPath(station.id)}>
 							<Mic className="text-primary" strokeWidth={1.6} />
 							Practise
 						</Link>
@@ -98,6 +99,14 @@ export function StationGrid({ stations }: { stations: VivaStation[] }) {
 		</ul>
 	);
 }
+
+const STATUS_LABEL: Record<VivaSummary['status'], string> = {
+	live: 'Not finished',
+	marking: 'Marking…',
+	marked: 'Marked',
+	failed: "Couldn't mark",
+	unanswered: 'No answers',
+};
 
 export function VivaHistory({ vivas }: { vivas: VivaSummary[] }) {
 	if (vivas.length === 0) {
@@ -114,23 +123,18 @@ export function VivaHistory({ vivas }: { vivas: VivaSummary[] }) {
 					key={viva.id}
 					className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap"
 				>
-					<Rosette score={viva.score} />
+					<Rosette score={viva.status === 'marked' ? viva.score : null} />
 					<div className="min-w-0 flex-1">
 						<p className="flex items-center gap-2">
 							<Link
-								to={`/viva/${viva.id}/feedback`}
+								to={vivaFeedbackPath(viva.id)}
 								className="truncate text-[15px] underline decoration-1 underline-offset-4 hover:text-primary"
 							>
-								{viva.name}
+								{viva.title}
 							</Link>
-							{viva.demo && (
-								<span className="shrink-0 rounded-full bg-chip px-1.5 py-0.5 text-[11px] leading-none font-medium text-chip-foreground">
-									Demo
-								</span>
-							)}
 						</p>
 						<p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-							{relativeTime(viva.attemptedAt)}
+							{relativeTime(viva.createdAt)}
 							<span>·</span>
 							<Clock className="size-3" />
 							{viva.minutes} min
@@ -141,13 +145,15 @@ export function VivaHistory({ vivas }: { vivas: VivaSummary[] }) {
 					<span
 						className={cn(
 							'rounded-full px-2.5 py-1 text-xs',
-							RATING_TONE[viva.rating],
+							viva.status === 'marked'
+								? RATING_TONE[viva.rating]
+								: 'bg-secondary text-muted-foreground',
 						)}
 					>
-						{viva.rating}
+						{viva.status === 'marked' ? viva.rating : STATUS_LABEL[viva.status]}
 					</span>
 					<Link
-						to={`/viva/${viva.id}/feedback`}
+						to={vivaFeedbackPath(viva.id)}
 						className="hidden text-sm text-muted-foreground underline decoration-dotted decoration-1 underline-offset-4 hover:text-foreground sm:inline"
 					>
 						Feedback
@@ -159,11 +165,16 @@ export function VivaHistory({ vivas }: { vivas: VivaSummary[] }) {
 }
 
 export function VivaPage() {
+	const stations = useQuery({
+		queryKey: ['viva-stations'],
+		queryFn: vivaApi.stations,
+	});
+	const vivas = useQuery({ queryKey: ['vivas'], queryFn: vivaApi.list });
 	return (
 		<div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 pb-32 sm:px-7 sm:pt-7">
 			<PageHeader title="Viva">
 				<Button asChild>
-					<Link to="/viva/new">
+					<Link to={vivaSetupPath()}>
 						<Mic strokeWidth={1.6} />
 						Start viva
 					</Link>
@@ -172,11 +183,11 @@ export function VivaPage() {
 			<VivaHero />
 			<section>
 				<h2 className="mb-3 text-sm font-medium">Stations</h2>
-				<StationGrid stations={vivaStations} />
+				<StationGrid stations={stations.data ?? []} />
 			</section>
 			<section>
 				<h2 className="mb-3 text-sm font-medium">Past vivas</h2>
-				<VivaHistory vivas={placeholderVivas} />
+				{vivas.data && <VivaHistory vivas={vivas.data} />}
 			</section>
 		</div>
 	);

@@ -1,3 +1,4 @@
+import { getTableColumns, sql } from 'drizzle-orm';
 import { db } from '../db';
 import {
 	chapters,
@@ -6,10 +7,12 @@ import {
 	saqMarkingPoints,
 	saqs,
 	topics,
+	vivaStations,
 } from '../schema';
 import { course } from './course';
 import { mcqs as seedMcqs } from './mcqs';
 import { saqs as seedSaqs } from './saqs';
+import { stations } from './vivaStations';
 
 const topicIds = new Set(
 	course.flatMap((chapter) => chapter.topics.map((topic) => topic.id)),
@@ -104,8 +107,21 @@ await db.batch([
 			})),
 		),
 	),
+	// Upserted rather than replaced: viva sessions reference their station.
+	db
+		.insert(vivaStations)
+		.values(stations.map((station, position) => ({ ...station, position })))
+		.onConflictDoUpdate({
+			target: vivaStations.id,
+			set: Object.fromEntries(
+				Object.entries(getTableColumns(vivaStations))
+					.filter(([key]) => key !== 'id')
+					.map(([key, column]) => [key, sql.raw(`excluded."${column.name}"`)]),
+			),
+		}),
 ]);
 
+console.log(`Seeded ${stations.length} viva stations.`);
 console.log(
 	`Seeded ${course.length} chapters, ${topicIds.size} topics, ${seedMcqs.length} MCQs and ${seedSaqs.length} SAQs.`,
 );

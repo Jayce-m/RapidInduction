@@ -1,14 +1,12 @@
 import { Button } from '@/components/ui/button';
+import { apiRequest } from '@/lib/api';
 import { indexCourse } from '@/study/content';
 import type { Chapter } from '@/study/types';
 import { useQuery } from '@tanstack/react-query';
 import { Outlet } from 'react-router-dom';
 
 async function fetchCourse(): Promise<Chapter[]> {
-	const response = await fetch('/api/course');
-	if (!response.ok)
-		throw new Error(`Course request failed: ${response.status}`);
-	const course: Chapter[] = await response.json();
+	const course = await apiRequest<Chapter[]>('/api/course');
 	indexCourse(course);
 	return course;
 }

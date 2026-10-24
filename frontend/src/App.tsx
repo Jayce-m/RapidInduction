@@ -46,7 +46,7 @@ const router = createBrowserRouter([
 			{ path: '/exams/:id/take', element: <TakeExamPage /> },
 			{ path: '/exams/:id/feedback', element: <ExamFeedbackPage /> },
 			{ path: '/viva/new', element: <VivaSetupPage /> },
-			{ path: '/viva/:id/live', element: <VivaLivePage /> },
+			{ path: '/viva/live', element: <VivaLivePage /> },
 			{ path: '/viva/:id/feedback', element: <VivaFeedbackPage /> },
 			{
 				element: <CourseGate />,
