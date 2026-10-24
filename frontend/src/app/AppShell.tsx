@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/popover';
 import { signOut, useSession } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { TRACK_LABEL, chapterOfScope, parseScope } from '@/study/course';
+import { TRACK_LABEL } from '@/study/course';
 import { outlinePath } from '@/study/paths';
 import type { ExamTrack } from '@/study/types';
 import { useAttempts, useCourse } from '@/study/wiring';
@@ -32,59 +32,28 @@ import {
 	useMatches,
 	useSearchParams,
 } from 'react-router-dom';
+import { trackForRoute } from './track';
+import { useShell } from './wiring';
 
 const TRACKS: ExamTrack[] = ['primary', 'final'];
-const COLLAPSED_KEY = 'ri.sidebar.collapsed';
 
-// The track is derived from whatever the current route shows, so deep links and
-// the back button never disagree with the switcher.
-function useRouteTrack(): ExamTrack | null {
+function useActiveTrack(): ExamTrack {
+	const course = useCourse();
+	const attempts = useAttempts();
 	const { pathname } = useLocation();
 	const [search] = useSearchParams();
 	const matches = useMatches();
-	const attempts = useAttempts();
-	const course = useCourse();
-	if (!pathname.startsWith('/quiz')) return null;
-
-	const params = matches[matches.length - 1]?.params ?? {};
-	const scope = params.attemptId
-		? attempts.find((attempt) => attempt.id === params.attemptId)?.scope
-		: parseScope(course, params.scope, params.id);
-	const chapter = params.chapterId
-		? course.chapterById.get(params.chapterId)
-		: scope && chapterOfScope(course, scope);
-	if (chapter) return chapter.track;
-	return search.get('track') === 'final' ? 'final' : 'primary';
-}
-
-// Off the quiz routes there is no track in the URL, so the switcher keeps
-// showing the last course the user was looking at.
-function useActiveTrack(): ExamTrack {
-	const routeTrack = useRouteTrack();
-	const [lastTrack, setLastTrack] = useState<ExamTrack>('primary');
-	useEffect(() => {
-		if (routeTrack) setLastTrack(routeTrack);
-	}, [routeTrack]);
-	return routeTrack ?? lastTrack;
-}
-
-function useCollapsed(): [boolean, () => void] {
-	const [collapsed, setCollapsed] = useState(() => {
-		try {
-			return localStorage.getItem(COLLAPSED_KEY) === '1';
-		} catch {
-			return false;
-		}
+	const routeTrack = trackForRoute(course, attempts, {
+		pathname,
+		params: matches[matches.length - 1]?.params ?? {},
+		trackParam: search.get('track'),
 	});
-	const toggle = () => {
-		setCollapsed((value) => {
-			try {
-				localStorage.setItem(COLLAPSED_KEY, value ? '0' : '1');
-			} catch {}
-			return !value;
-		});
-	};
-	return [collapsed, toggle];
+	const lastTrack = useShell((state) => state.lastTrack);
+	const rememberTrack = useShell((state) => state.rememberTrack);
+	useEffect(() => {
+		if (routeTrack) rememberTrack(routeTrack);
+	}, [routeTrack, rememberTrack]);
+	return routeTrack ?? lastTrack;
 }
 
 interface NavItem {
@@ -346,7 +315,8 @@ function TopBar({ track }: { track: ExamTrack }) {
 
 export function AppShell() {
 	const track = useActiveTrack();
-	const [collapsed, toggleCollapsed] = useCollapsed();
+	const collapsed = useShell((state) => state.collapsed);
+	const toggleCollapsed = useShell((state) => state.toggleSidebar);
 
 	return (
 		<div className="min-h-dvh bg-background md:flex">
