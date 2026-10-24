@@ -1,22 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { apiRequest } from '@/lib/api';
-import { indexCourse } from '@/study/content';
-import type { Chapter } from '@/study/types';
+import { courseQuery } from '@/study/queries';
 import { useQuery } from '@tanstack/react-query';
 import { Outlet } from 'react-router-dom';
 
-async function fetchCourse(): Promise<Chapter[]> {
-	const course = await apiRequest<Chapter[]>('/api/course');
-	indexCourse(course);
-	return course;
-}
-
 export function CourseGate() {
-	const { isPending, isError, refetch } = useQuery({
-		queryKey: ['course'],
-		queryFn: fetchCourse,
-		staleTime: Number.POSITIVE_INFINITY,
-	});
+	const { isPending, isError, refetch } = useQuery(courseQuery);
 
 	if (isPending) return <div className="min-h-dvh bg-background" />;
 	if (isError) {

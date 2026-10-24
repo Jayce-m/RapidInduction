@@ -6,15 +6,10 @@ import {
 } from '@/components/ui/popover';
 import { signOut, useSession } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { useAttempts } from '@/study/attempts';
-import {
-	TRACK_LABEL,
-	chapterById,
-	chapterOfScope,
-	parseScope,
-} from '@/study/content';
+import { TRACK_LABEL, chapterOfScope, parseScope } from '@/study/course';
 import { outlinePath } from '@/study/paths';
 import type { ExamTrack } from '@/study/types';
+import { useAttempts, useCourse } from '@/study/wiring';
 import {
 	Check,
 	ChevronsUpDown,
@@ -48,15 +43,16 @@ function useRouteTrack(): ExamTrack | null {
 	const [search] = useSearchParams();
 	const matches = useMatches();
 	const attempts = useAttempts();
+	const course = useCourse();
 	if (!pathname.startsWith('/quiz')) return null;
 
 	const params = matches[matches.length - 1]?.params ?? {};
 	const scope = params.attemptId
 		? attempts.find((attempt) => attempt.id === params.attemptId)?.scope
-		: parseScope(params.scope, params.id);
+		: parseScope(course, params.scope, params.id);
 	const chapter = params.chapterId
-		? chapterById.get(params.chapterId)
-		: scope && chapterOfScope(scope);
+		? course.chapterById.get(params.chapterId)
+		: scope && chapterOfScope(course, scope);
 	if (chapter) return chapter.track;
 	return search.get('track') === 'final' ? 'final' : 'primary';
 }

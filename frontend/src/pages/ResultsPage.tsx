@@ -12,17 +12,11 @@ import {
 	percent,
 	scoreOf,
 	topicAccuracy,
-	useAttempts,
 } from '@/study/attempts';
-import {
-	TRACK_LABEL,
-	chapterOfScope,
-	questionById,
-	scopeTitle,
-	topicById,
-} from '@/study/content';
+import { TRACK_LABEL, chapterOfScope, scopeTitle } from '@/study/course';
 import { outlinePath, readingPath, scopePath } from '@/study/paths';
 import type { McqQuestion, QuizAttempt } from '@/study/types';
+import { useAttempts, useCourse } from '@/study/wiring';
 import {
 	BookOpen,
 	Check,
@@ -51,6 +45,7 @@ function TopicList({
 	topics: TopicScore[];
 	empty: string;
 }) {
+	const course = useCourse();
 	return (
 		<section className="rounded-2xl border">
 			<div className="flex items-center gap-3 border-b px-5 py-4">
@@ -69,7 +64,7 @@ function TopicList({
 					topics.map((score) => (
 						<div key={score.topicId}>
 							<p className="font-medium">
-								{topicById.get(score.topicId)?.title}
+								{course.topicById.get(score.topicId)?.title}
 							</p>
 							<p className="text-sm text-muted-foreground">
 								{score.correct} of {score.total} correct ({percent(score)}%)
@@ -141,9 +136,10 @@ function OptionRow({
 }
 
 function QuestionReview({ attempt }: { attempt: QuizAttempt }) {
+	const course = useCourse();
 	const [index, setIndex] = useState(0);
 	const questions = attempt.questionIds.flatMap((id) => {
-		const question = questionById.get(id);
+		const question = course.questionById.get(id);
 		return question ? [question] : [];
 	});
 	const question = questions[index];
@@ -259,11 +255,11 @@ function QuestionReview({ attempt }: { attempt: QuizAttempt }) {
 				<TabsContent value="explanation" className="space-y-4">
 					<p className="leading-relaxed">{question.explanation}</p>
 					<Link
-						to={readingPath(question.topicId)}
+						to={readingPath(course, question.topicId)}
 						className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
 					>
 						<BookOpen className="size-4" />
-						Read: {topicById.get(question.topicId)?.title}
+						Read: {course.topicById.get(question.topicId)?.title}
 					</Link>
 				</TabsContent>
 			</Tabs>
@@ -272,6 +268,7 @@ function QuestionReview({ attempt }: { attempt: QuizAttempt }) {
 }
 
 export function ResultsPage() {
+	const course = useCourse();
 	const { attemptId } = useParams();
 	const attempt = useAttempts().find(({ id }) => id === attemptId);
 
@@ -294,9 +291,9 @@ export function ResultsPage() {
 		);
 	}
 
-	const chapter = chapterOfScope(attempt.scope);
-	const score = scoreOf(attempt);
-	const topics = topicAccuracy(attempt);
+	const chapter = chapterOfScope(course, attempt.scope);
+	const score = scoreOf(course, attempt);
+	const topics = topicAccuracy(course, attempt);
 	const strengths = topics.filter((t) => percent(t) >= STRENGTH_THRESHOLD);
 	const weaknesses = topics.filter((t) => percent(t) < STRENGTH_THRESHOLD);
 
@@ -326,7 +323,7 @@ export function ResultsPage() {
 						{attempt.scope.kind === 'chapter' ? 'Chapter quiz' : 'Topic quiz'}
 					</p>
 					<h1 className="font-display text-[22px] leading-8 sm:text-[26px]">
-						{scopeTitle(attempt.scope)}
+						{scopeTitle(course, attempt.scope)}
 					</h1>
 					<p className="mt-1 text-sm text-muted-foreground">
 						{score.correct} of {score.total} correct ·{' '}
@@ -380,11 +377,11 @@ export function ResultsPage() {
 										className="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3"
 									>
 										<span className="text-sm font-medium">
-											{topicById.get(weak.topicId)?.title}
+											{course.topicById.get(weak.topicId)?.title}
 										</span>
 										<span className="flex gap-2">
 											<Button variant="pill" size="sm" asChild>
-												<Link to={readingPath(weak.topicId)}>Read</Link>
+												<Link to={readingPath(course, weak.topicId)}>Read</Link>
 											</Button>
 											<Button variant="pill" size="sm" asChild>
 												<Link

@@ -1,8 +1,12 @@
 import { PageContainer } from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { saveAttempt } from '@/study/attempts';
-import { parseScope, questionsForScope, scopeTitle } from '@/study/content';
+import {
+	type Course,
+	parseScope,
+	questionsForScope,
+	scopeTitle,
+} from '@/study/course';
 import {
 	attemptPath,
 	chapterPath,
@@ -11,6 +15,7 @@ import {
 	scopePath,
 } from '@/study/paths';
 import type { McqQuestion, OptionKey, QuizScope } from '@/study/types';
+import { saveAttempt, useCourse } from '@/study/wiring';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useReducer } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -38,16 +43,17 @@ function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
 
 const OPTION_KEYS: readonly string[] = ['A', 'B', 'C', 'D', 'E'];
 
-function exitPath(scope: QuizScope): string {
+function exitPath(course: Course, scope: QuizScope): string {
 	return scope.kind === 'chapter'
 		? chapterPath(scope.chapterId)
-		: readingPath(scope.topicId);
+		: readingPath(course, scope.topicId);
 }
 
 function QuizRunner({
 	scope,
 	questions,
 }: { scope: QuizScope; questions: McqQuestion[] }) {
+	const course = useCourse();
 	const navigate = useNavigate();
 	const [state, dispatch] = useReducer(runnerReducer, {
 		index: 0,
@@ -65,7 +71,7 @@ function QuizRunner({
 
 	const submit = () => {
 		const id = crypto.randomUUID();
-		saveAttempt({
+		saveAttempt(course, {
 			id,
 			scope,
 			questionIds: questions.map((q) => q.id),
@@ -101,7 +107,7 @@ function QuizRunner({
 		<PageContainer>
 			<div className="flex items-center justify-between gap-3">
 				<Link
-					to={exitPath(scope)}
+					to={exitPath(course, scope)}
 					className="inline-flex items-center gap-1 text-sm hover:text-primary"
 				>
 					<ChevronLeft className="size-4" />
@@ -113,7 +119,7 @@ function QuizRunner({
 			</div>
 
 			<h1 className="mt-6 font-display text-[22px] leading-8 sm:text-[26px]">
-				{scopeTitle(scope)}
+				{scopeTitle(course, scope)}
 			</h1>
 
 			<nav aria-label="Questions" className="mt-5 flex flex-wrap gap-2">
@@ -218,8 +224,9 @@ function QuizRunner({
 }
 
 export function QuizPage() {
+	const course = useCourse();
 	const params = useParams();
-	const scope = parseScope(params.scope, params.id);
+	const scope = parseScope(course, params.scope, params.id);
 	if (!scope) {
 		return (
 			<PageContainer>
@@ -238,7 +245,7 @@ export function QuizPage() {
 		<QuizRunner
 			key={scopePath(scope)}
 			scope={scope}
-			questions={questionsForScope(scope)}
+			questions={questionsForScope(course, scope)}
 		/>
 	);
 }

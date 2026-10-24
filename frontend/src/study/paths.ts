@@ -1,4 +1,4 @@
-import { chapterOfTopic } from './content';
+import type { Course } from './course';
 import type { ExamTrack, QuizScope } from './types';
 
 export function outlinePath(track?: ExamTrack): string {
@@ -11,8 +11,8 @@ export function chapterPath(chapterId: string, topicId?: string): string {
 		: `/quizzes/${chapterId}`;
 }
 
-export function readingPath(topicId: string): string {
-	return chapterPath(String(chapterOfTopic.get(topicId)?.id), topicId);
+export function readingPath(course: Course, topicId: string): string {
+	return chapterPath(String(course.chapterOfTopic.get(topicId)?.id), topicId);
 }
 
 export function scopePath(scope: QuizScope): string {

@@ -6,10 +6,11 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
-import { bestScore, sameScope, useAttempts } from '@/study/attempts';
-import { TRACK_LABEL, chapterNumber, chaptersForTrack } from '@/study/content';
+import { bestScore, sameScope } from '@/study/attempts';
+import { TRACK_LABEL, chapterNumber, chaptersForTrack } from '@/study/course';
 import { chapterPath, scopePath } from '@/study/paths';
 import type { Chapter, ExamTrack, QuizScope } from '@/study/types';
+import { useAttempts, useCourse } from '@/study/wiring';
 import { ChevronDown } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
@@ -49,11 +50,12 @@ function TopicsMenu({ chapter }: { chapter: Chapter }) {
 }
 
 function ChapterCard({ chapter }: { chapter: Chapter }) {
+	const course = useCourse();
 	const scope: QuizScope = { kind: 'chapter', chapterId: chapter.id };
 	const attempts = useAttempts().filter((attempt) =>
 		sameScope(attempt.scope, scope),
 	);
-	const best = bestScore(attempts);
+	const best = bestScore(course, attempts);
 
 	return (
 		<section aria-labelledby={`chapter-${chapter.id}`}>
@@ -64,7 +66,7 @@ function ChapterCard({ chapter }: { chapter: Chapter }) {
 						className="text-lg leading-7 tracking-[-0.01em]"
 					>
 						<span className="text-muted-foreground">
-							Chapter {chapterNumber(chapter)}:{' '}
+							Chapter {chapterNumber(course, chapter)}:{' '}
 						</span>
 						{chapter.title}
 					</h2>
@@ -104,10 +106,11 @@ function ChapterCard({ chapter }: { chapter: Chapter }) {
 }
 
 export function OutlinePage() {
+	const course = useCourse();
 	const [search] = useSearchParams();
 	const track: ExamTrack =
 		search.get('track') === 'final' ? 'final' : 'primary';
-	const trackChapters = chaptersForTrack(track);
+	const trackChapters = chaptersForTrack(course, track);
 
 	return (
 		<PageContainer wide>

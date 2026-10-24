@@ -12,14 +12,12 @@ import {
 	underlineTabTrigger,
 } from '@/components/underlineTabs';
 import { cn } from '@/lib/utils';
-import { percent, topicAccuracy, useAttempts } from '@/study/attempts';
+import { percent, topicAccuracy } from '@/study/attempts';
 import {
-	chapterById,
 	chapterNumber,
 	chaptersForTrack,
 	scopeTitle,
-	topicById,
-} from '@/study/content';
+} from '@/study/course';
 import {
 	attemptPath,
 	chapterPath,
@@ -28,6 +26,7 @@ import {
 	scopePath,
 } from '@/study/paths';
 import type { Chapter, Topic } from '@/study/types';
+import { useAttempts, useCourse } from '@/study/wiring';
 import {
 	BookOpen,
 	Check,
@@ -97,6 +96,7 @@ function Section({
 }
 
 function TopicReading({ topic }: { topic: Topic }) {
+	const course = useCourse();
 	const { reading } = topic;
 	return (
 		<div className="space-y-12 leading-7">
@@ -146,7 +146,9 @@ function TopicReading({ topic }: { topic: Topic }) {
 				<div className="flex flex-wrap gap-2">
 					{reading.relatedTopicIds.map((id) => (
 						<Button key={id} variant="pill" size="sm" asChild>
-							<Link to={readingPath(id)}>{topicById.get(id)?.title}</Link>
+							<Link to={readingPath(course, id)}>
+								{course.topicById.get(id)?.title}
+							</Link>
 						</Button>
 					))}
 				</div>
@@ -156,9 +158,10 @@ function TopicReading({ topic }: { topic: Topic }) {
 }
 
 function TopicAttempts({ topic }: { topic: Topic }) {
+	const course = useCourse();
 	const rows = useAttempts()
 		.flatMap((attempt) => {
-			const score = topicAccuracy(attempt).find(
+			const score = topicAccuracy(course, attempt).find(
 				(entry) => entry.topicId === topic.id,
 			);
 			return score ? [{ attempt, score }] : [];
@@ -209,7 +212,7 @@ function TopicAttempts({ topic }: { topic: Topic }) {
 					>
 						<div className="min-w-0">
 							<p className="truncate text-sm font-medium">
-								{scopeTitle(attempt.scope)}
+								{scopeTitle(course, attempt.scope)}
 							</p>
 							<p className="text-xs text-muted-foreground">
 								{new Date(attempt.completedAt).toLocaleString()}
@@ -231,9 +234,10 @@ function TopicAttempts({ topic }: { topic: Topic }) {
 }
 
 export function ReadingPage() {
+	const course = useCourse();
 	const { chapterId } = useParams();
 	const [search, setSearch] = useSearchParams();
-	const chapter = chapterId ? chapterById.get(chapterId) : undefined;
+	const chapter = chapterId ? course.chapterById.get(chapterId) : undefined;
 
 	if (!chapter) {
 		return (
@@ -256,7 +260,7 @@ export function ReadingPage() {
 		chapter.topics[0];
 	const tab: ReadingTab =
 		search.get('tab') === 'attempts' ? 'attempts' : 'readings';
-	const trackChapters = chaptersForTrack(chapter.track);
+	const trackChapters = chaptersForTrack(course, chapter.track);
 	const nextChapter = trackChapters[trackChapters.indexOf(chapter) + 1];
 
 	const update = (changes: { topic?: string; tab?: ReadingTab }) => {
@@ -282,7 +286,7 @@ export function ReadingPage() {
 							to={chapterPath(nextChapter.id)}
 							className="hidden items-center gap-1.5 text-[15px] text-primary hover:text-primary-border sm:inline-flex"
 						>
-							Continue to Chapter {chapterNumber(nextChapter)}
+							Continue to Chapter {chapterNumber(course, nextChapter)}
 							<ChevronRight className="size-3.5" />
 						</Link>
 					)}

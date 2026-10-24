@@ -1,77 +1,48 @@
-import { useSyncExternalStore } from 'react';
-import { parseScope, questionById } from './content';
+import { type Course, parseScope } from './course';
 import type { QuizAttempt, QuizScope } from './types';
 
-const STORAGE_KEY = 'rapidinduction.attempts.v1';
+export const ATTEMPTS_KEY = 'rapidinduction.attempts.v1';
 
-const listeners = new Set<() => void>();
-let snapshot: QuizAttempt[] | null = null;
+type LooseScope = { kind?: string; chapterId?: string; topicId?: string };
 
-// Storage is user-editable and outlives content changes, so drop anything that
-// no longer resolves against the current question bank instead of crashing later.
-function isUsableAttempt(value: unknown): value is QuizAttempt {
+function hasAttemptShape(value: unknown): value is QuizAttempt {
 	if (typeof value !== 'object' || value === null) return false;
 	const attempt = value as Partial<QuizAttempt>;
-	const scope = attempt.scope as
-		| { kind?: string; chapterId?: string; topicId?: string }
-		| undefined;
 	return (
 		typeof attempt.id === 'string' &&
 		typeof attempt.completedAt === 'string' &&
-		parseScope(scope?.kind, scope?.chapterId ?? scope?.topicId) !== null &&
+		typeof attempt.scope === 'object' &&
+		attempt.scope !== null &&
 		typeof attempt.answers === 'object' &&
 		attempt.answers !== null &&
 		Array.isArray(attempt.questionIds) &&
-		attempt.questionIds.every((id) => questionById.has(id))
+		attempt.questionIds.every((id) => typeof id === 'string')
 	);
 }
 
-function readStorage(): QuizAttempt[] {
+// Storage is user-editable, so anything malformed is dropped rather than crashing later.
+export function parseAttempts(raw: string | null): QuizAttempt[] {
 	try {
-		const parsed: unknown = JSON.parse(
-			localStorage.getItem(STORAGE_KEY) ?? '[]',
-		);
-		return Array.isArray(parsed) ? parsed.filter(isUsableAttempt) : [];
+		const parsed: unknown = JSON.parse(raw ?? '[]');
+		return Array.isArray(parsed) ? parsed.filter(hasAttemptShape) : [];
 	} catch {
 		return [];
 	}
 }
 
-function getSnapshot(): QuizAttempt[] {
-	snapshot ??= readStorage();
-	return snapshot;
-}
-
-function emit() {
-	for (const listener of listeners) listener();
-}
-
-function subscribe(listener: () => void) {
-	listeners.add(listener);
-	const onStorage = (event: StorageEvent) => {
-		if (event.key !== STORAGE_KEY) return;
-		snapshot = null;
-		listener();
-	};
-	window.addEventListener('storage', onStorage);
-	return () => {
-		listeners.delete(listener);
-		window.removeEventListener('storage', onStorage);
-	};
-}
-
-export function useAttempts(): QuizAttempt[] {
-	return useSyncExternalStore(subscribe, getSnapshot);
-}
-
-export function saveAttempt(attempt: QuizAttempt) {
-	snapshot = [...getSnapshot(), attempt];
-	try {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
-	} catch {
-		// Private mode or a full quota: the attempt still lives for this session.
-	}
-	emit();
+// Storage outlives content changes, so drop anything that no longer resolves
+// against the current course.
+export function usableAttempts(
+	course: Course,
+	attempts: readonly QuizAttempt[],
+): QuizAttempt[] {
+	return attempts.filter((attempt) => {
+		const scope = attempt.scope as LooseScope;
+		return (
+			parseScope(course, scope.kind, scope.chapterId ?? scope.topicId) !==
+				null && attempt.questionIds.every((id) => course.questionById.has(id))
+		);
+	});
 }
 
 export interface Score {
@@ -83,13 +54,20 @@ export function percent({ correct, total }: Score): number {
 	return total === 0 ? 0 : Math.round((correct / total) * 100);
 }
 
-function isCorrect(attempt: QuizAttempt, questionId: string): boolean {
-	return attempt.answers[questionId] === questionById.get(questionId)?.correct;
+function isCorrect(
+	course: Course,
+	attempt: QuizAttempt,
+	questionId: string,
+): boolean {
+	return (
+		attempt.answers[questionId] === course.questionById.get(questionId)?.correct
+	);
 }
 
-export function scoreOf(attempt: QuizAttempt): Score {
+export function scoreOf(course: Course, attempt: QuizAttempt): Score {
 	return {
-		correct: attempt.questionIds.filter((id) => isCorrect(attempt, id)).length,
+		correct: attempt.questionIds.filter((id) => isCorrect(course, attempt, id))
+			.length,
 		total: attempt.questionIds.length,
 	};
 }
@@ -98,14 +76,17 @@ export interface TopicScore extends Score {
 	topicId: string;
 }
 
-export function topicAccuracy(attempt: QuizAttempt): TopicScore[] {
+export function topicAccuracy(
+	course: Course,
+	attempt: QuizAttempt,
+): TopicScore[] {
 	const byTopic = new Map<string, TopicScore>();
 	for (const questionId of attempt.questionIds) {
-		const topicId = questionById.get(questionId)?.topicId;
+		const topicId = course.questionById.get(questionId)?.topicId;
 		if (!topicId) continue;
 		const entry = byTopic.get(topicId) ?? { topicId, correct: 0, total: 0 };
 		entry.total += 1;
-		if (isCorrect(attempt, questionId)) entry.correct += 1;
+		if (isCorrect(course, attempt, questionId)) entry.correct += 1;
 		byTopic.set(topicId, entry);
 	}
 	return [...byTopic.values()];
@@ -121,10 +102,13 @@ export function sameScope(a: QuizScope, b: QuizScope): boolean {
 	return false;
 }
 
-export function bestScore(attempts: QuizAttempt[]): Score | null {
+export function bestScore(
+	course: Course,
+	attempts: readonly QuizAttempt[],
+): Score | null {
 	let best: Score | null = null;
 	for (const attempt of attempts) {
-		const score = scoreOf(attempt);
+		const score = scoreOf(course, attempt);
 		if (!best || percent(score) > percent(best)) best = score;
 	}
 	return best;
