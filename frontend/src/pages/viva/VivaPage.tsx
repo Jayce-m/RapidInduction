@@ -9,9 +9,9 @@ import {
 	STYLE_COPY,
 	type VivaStation,
 	type VivaSummary,
-	vivaApi,
 } from '@/viva/model';
 import { vivaFeedbackPath, vivaSetupPath } from '@/viva/paths';
+import { stationsQuery, vivasQuery } from '@/viva/queries';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, Mic } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -165,11 +165,8 @@ export function VivaHistory({ vivas }: { vivas: VivaSummary[] }) {
 }
 
 export function VivaPage() {
-	const stations = useQuery({
-		queryKey: ['viva-stations'],
-		queryFn: vivaApi.stations,
-	});
-	const vivas = useQuery({ queryKey: ['vivas'], queryFn: vivaApi.list });
+	const stations = useQuery(stationsQuery);
+	const vivas = useQuery(vivasQuery);
 	return (
 		<div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 pb-32 sm:px-7 sm:pt-7">
 			<PageHeader title="Viva">

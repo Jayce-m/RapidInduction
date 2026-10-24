@@ -1,5 +1,3 @@
-import { apiRequest } from '@/lib/api';
-
 // Mirrors server/vivaShapes.ts and the shapes server/viva.ts returns.
 
 export const EXAMINER_STYLES = ['supportive', 'standard', 'probing'] as const;
@@ -124,22 +122,4 @@ export const RATING_TONE: Record<VivaRating, string> = {
 	Pass: 'bg-[#eef5ea] text-[#4a7a3a]',
 	Borderline: 'bg-[#fbf1dc] text-[#8a6420]',
 	'Below standard': 'bg-caution text-caution-foreground',
-};
-
-const post = (body?: unknown): RequestInit => ({
-	method: 'POST',
-	body: body === undefined ? undefined : JSON.stringify(body),
-});
-
-export const vivaApi = {
-	stations: () => apiRequest<VivaStation[]>('/api/viva-stations'),
-	list: () => apiRequest<VivaSummary[]>('/api/vivas'),
-	get: (id: string) => apiRequest<VivaDetail>(`/api/vivas/${id}`),
-	start: (options: VivaOptions) =>
-		apiRequest<StartedViva>('/api/vivas', post(options)),
-	connect: (id: string, conversationId: string) =>
-		apiRequest<void>(`/api/vivas/${id}/connect`, post({ conversationId })),
-	discard: (id: string) =>
-		apiRequest<void>(`/api/vivas/${id}`, { method: 'DELETE' }),
-	end: (id: string) => apiRequest<void>(`/api/vivas/${id}/end`, post()),
 };

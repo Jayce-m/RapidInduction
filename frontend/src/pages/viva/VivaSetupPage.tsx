@@ -9,9 +9,9 @@ import {
 	STYLE_COPY,
 	VIVA_LENGTHS,
 	type VivaLength,
-	vivaApi,
 } from '@/viva/model';
 import { vivaLivePath } from '@/viva/paths';
+import { stationsQuery } from '@/viva/queries';
 import { useQuery } from '@tanstack/react-query';
 import { Check, Keyboard, type LucideIcon, Mic, MicOff, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
@@ -152,10 +152,7 @@ function MicCheckPanel({
 export function VivaSetupPage() {
 	const navigate = useNavigate();
 	const [search] = useSearchParams();
-	const { data: stations = [] } = useQuery({
-		queryKey: ['viva-stations'],
-		queryFn: vivaApi.stations,
-	});
+	const { data: stations = [] } = useQuery(stationsQuery);
 	const [picked, setStationId] = useState(search.get('station'));
 	const stationId = stations.some((station) => station.id === picked)
 		? picked

@@ -2,19 +2,15 @@ import { ExaminerOrb, type OrbState, WaveBars } from '@/components/ExaminerOrb';
 import { Button } from '@/components/ui/button';
 import { clock } from '@/lib/time';
 import { cn } from '@/lib/utils';
-import {
-	type StartedViva,
-	type VivaExhibit,
-	type VivaOptions,
-	type VivaTurn,
-	vivaApi,
-} from '@/viva/model';
+import type { VivaExhibit, VivaOptions, VivaTurn } from '@/viva/model';
 import {
 	parseVivaOptions,
 	vivaFeedbackPath,
 	vivaSetupPath,
 } from '@/viva/paths';
-import { ConversationProvider, useConversation } from '@elevenlabs/react';
+import { stationsQuery, vivasQuery } from '@/viva/queries';
+import { type Room, startedViva } from '@/viva/session';
+import { useVivaSession } from '@/viva/wiring';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
 	ArrowRight,
@@ -25,13 +21,8 @@ import {
 	MicOff,
 	X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-
-type Phase = 'ready' | 'connecting' | 'live' | 'ending' | 'end-failed';
-
-// The examiner is told the length; this only stops a viva that runs well over.
-const GRACE_SECONDS = 60;
 
 function roomView({
 	phase,
@@ -40,7 +31,7 @@ function roomView({
 	muted,
 	examiner,
 }: {
-	phase: Phase;
+	phase: Room['phase'];
 	speaking: boolean;
 	voice: boolean;
 	muted: boolean;
@@ -58,19 +49,6 @@ function roomView({
 	if (!voice) return { orb: 'idle', status: 'Type your answer' };
 	if (muted) return { orb: 'idle', status: 'Microphone muted' };
 	return { orb: 'listening', status: 'Listening to you' };
-}
-
-const message = (cause: unknown) =>
-	cause instanceof Error ? cause.message : String(cause);
-
-function useElapsed(running: boolean): number {
-	const [seconds, setSeconds] = useState(0);
-	useEffect(() => {
-		if (!running) return;
-		const timer = setInterval(() => setSeconds((s) => s + 1), 1000);
-		return () => clearInterval(timer);
-	}, [running]);
-	return seconds;
 }
 
 function ScenarioCard({ scenario }: { scenario: string | undefined }) {
@@ -223,128 +201,27 @@ function TextAnswer({
 function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const [phase, setPhase] = useState<Phase>('ready');
-	const [viva, setViva] = useState<StartedViva | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [transcript, setTranscript] = useState<VivaTurn[]>([]);
-	const [shown, setShown] = useState<string[]>([]);
-	const [muted, setMuted] = useState(false);
-	// The SDK holds on to client tools from when the session starts, and a
-	// connection can fail before React re-renders, so the session lives in refs.
-	const started = useRef<StartedViva | null>(null);
-	const conversationId = useRef<string | null>(null);
-	const finishing = useRef(false);
-
-	const elapsed = useElapsed(phase === 'live');
-	const voice = options.mode === 'voice';
-
-	const addTurn = (role: VivaTurn['role'], text: string) =>
-		setTranscript((turns) => [...turns, { role, text, at: elapsed }]);
-
-	const conversation = useConversation({
-		micMuted: muted,
-		onConnect: ({ conversationId: id }) => {
-			const viva = started.current;
-			if (!viva) return;
-			conversationId.current = id;
-			vivaApi.connect(viva.id, id).then(
-				() => setPhase('live'),
-				(cause) => abandon(message(cause)),
-			);
-		},
-		onMessage: ({ message, role }) => {
-			// Typed answers are added when sent, so only spoken ones arrive here.
-			if (role === 'user' && !voice) return;
-			addTurn(role === 'agent' ? 'examiner' : 'candidate', message);
-		},
-		onDisconnect: () => {
-			if (conversationId.current) void finish();
-			else abandon("Couldn't connect to the examiner. Please try again.");
-		},
-		onError: (error) => {
-			if (conversationId.current) setError(error);
-			else abandon(error);
-		},
-		clientTools: {
-			show_exhibit: ({ exhibit_id }: { exhibit_id?: unknown }) => {
-				const exhibits = started.current?.exhibits ?? [];
-				const exhibit = exhibits.find((e) => e.id === exhibit_id);
-				if (!exhibit) {
-					const ids = exhibits.map((e) => `"${e.id}"`).join(', ');
-					return `No exhibit with id "${String(exhibit_id)}". Pass exhibit_id as one of: ${ids || 'none for this station'}.`;
-				}
-				setShown((ids) =>
-					ids.includes(exhibit.id) ? ids : [...ids, exhibit.id],
-				);
-				return `${exhibit.title} is now in front of the candidate.`;
-			},
-		},
+	const {
+		room,
+		error,
+		transcript,
+		shown,
+		elapsed,
+		muted,
+		speaking,
+		begin,
+		finish,
+		retryEnd,
+		toggleMute,
+		answer,
+		typing,
+	} = useVivaSession(options, (id) => {
+		void queryClient.invalidateQueries({ queryKey: vivasQuery.queryKey });
+		navigate(vivaFeedbackPath(id));
 	});
-
-	async function begin() {
-		setError(null);
-		setPhase('connecting');
-		try {
-			const viva = await vivaApi.start(options);
-			started.current = viva;
-			setViva(viva);
-			conversation.startSession({
-				signedUrl: viva.signedUrl,
-				dynamicVariables: viva.dynamicVariables,
-				textOnly: !voice,
-				stripAudioTags: true,
-			});
-		} catch (cause) {
-			setError(message(cause));
-			setPhase('ready');
-		}
-	}
-
-	// A viva that never connected is thrown away, so trying again doesn't use
-	// up another one.
-	function abandon(reason: string) {
-		const viva = started.current;
-		if (!viva || finishing.current) return;
-		started.current = null;
-		conversationId.current = null;
-		conversation.endSession();
-		void vivaApi.discard(viva.id).catch(() => {});
-		setViva(null);
-		setTranscript([]);
-		setShown([]);
-		setError(reason);
-		setPhase('ready');
-	}
-
-	async function finish() {
-		const viva = started.current;
-		if (finishing.current || !viva) return;
-		finishing.current = true;
-		setPhase('ending');
-		conversation.endSession();
-		await submitEnd(viva.id);
-	}
-
-	// If this fails the viva is still marked once it is well past its length,
-	// but retrying gets the feedback sooner.
-	async function submitEnd(id: string) {
-		setError(null);
-		try {
-			await vivaApi.end(id);
-			void queryClient.invalidateQueries({ queryKey: ['vivas'] });
-			navigate(vivaFeedbackPath(id));
-		} catch (cause) {
-			setError(`Couldn't end the viva: ${message(cause)}`);
-			setPhase('end-failed');
-		}
-	}
-
-	const overrun =
-		phase === 'live' && elapsed > options.minutes * 60 + GRACE_SECONDS;
-	// biome-ignore lint/correctness/useExhaustiveDependencies: finish is guarded against running twice
-	useEffect(() => {
-		if (overrun) void finish();
-	}, [overrun]);
+	const { phase } = room;
+	const viva = startedViva(room);
+	const voice = options.mode === 'voice';
 
 	const examiner = viva?.examinerName ?? 'Examiner';
 	const lastExaminerLine = transcript
@@ -352,7 +229,7 @@ function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 		.at(-1)?.text;
 	const { orb, status } = roomView({
 		phase,
-		speaking: conversation.isSpeaking,
+		speaking,
 		voice,
 		muted,
 		examiner,
@@ -414,7 +291,7 @@ function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 							>
 								{status}
 							</p>
-							{phase === 'live' && voice && !conversation.isSpeaking && (
+							{phase === 'live' && voice && !speaking && (
 								<WaveBars active={!muted} className="text-success" />
 							)}
 						</div>
@@ -436,8 +313,8 @@ function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 							Begin viva
 						</Button>
 					)}
-					{phase === 'end-failed' && viva && (
-						<Button size="lg" onClick={() => void submitEnd(viva.id)}>
+					{phase === 'end-failed' && (
+						<Button size="lg" onClick={() => void retryEnd()}>
 							Try again
 						</Button>
 					)}
@@ -447,7 +324,7 @@ function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 								type="button"
 								aria-pressed={!muted}
 								aria-label={muted ? 'Unmute microphone' : 'Mute microphone'}
-								onClick={() => setMuted((m) => !m)}
+								onClick={toggleMute}
 								className={cn(
 									'flex size-14 items-center justify-center rounded-full transition-colors',
 									muted
@@ -462,13 +339,7 @@ function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 								)}
 							</button>
 						) : (
-							<TextAnswer
-								onSend={(text) => {
-									addTurn('candidate', text);
-									conversation.sendUserMessage(text);
-								}}
-								onTyping={conversation.sendUserActivity}
-							/>
+							<TextAnswer onSend={answer} onTyping={typing} />
 						))}
 				</section>
 
@@ -485,15 +356,8 @@ function VivaRoom({ options, title }: { options: VivaOptions; title: string }) {
 export function VivaLivePage() {
 	const [search] = useSearchParams();
 	const options = parseVivaOptions(search);
-	const { data: stations } = useQuery({
-		queryKey: ['viva-stations'],
-		queryFn: vivaApi.stations,
-	});
+	const { data: stations } = useQuery(stationsQuery);
 	if (!options) return <Navigate to={vivaSetupPath()} replace />;
 	const title = stations?.find((s) => s.id === options.stationId)?.title ?? '';
-	return (
-		<ConversationProvider>
-			<VivaRoom options={options} title={title} />
-		</ConversationProvider>
-	);
+	return <VivaRoom options={options} title={title} />;
 }

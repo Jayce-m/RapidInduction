@@ -12,9 +12,9 @@ import {
 	type VivaDetail,
 	type VivaMarking,
 	type VivaTurn,
-	vivaApi,
 } from '@/viva/model';
 import { vivaSetupPath } from '@/viva/paths';
+import { vivaQuery } from '@/viva/queries';
 import { useQuery } from '@tanstack/react-query';
 import {
 	ChevronLeft,
@@ -232,11 +232,6 @@ const WAITING_COPY: Record<UnmarkedStatus, { title: string; body: string }> = {
 	},
 };
 
-// Polls while a result is on its way, for long enough to cover a viva left
-// open, then stops rather than polling a lost cause forever.
-const POLL_MS = 3000;
-const POLL_LIMIT = 400;
-
 function Waiting({ viva }: { viva: VivaDetail & { status: UnmarkedStatus } }) {
 	const copy = WAITING_COPY[viva.status];
 	return (
@@ -311,17 +306,7 @@ export function VivaFeedbackView({ viva }: { viva: MarkedViva }) {
 
 export function VivaFeedbackPage() {
 	const { id = '' } = useParams();
-	const { data: viva, isError } = useQuery({
-		queryKey: ['viva', id],
-		queryFn: () => vivaApi.get(id),
-		refetchInterval: (query) => {
-			const status = query.state.data?.status;
-			const pending = status === 'marking' || status === 'live';
-			return pending && query.state.dataUpdateCount < POLL_LIMIT
-				? POLL_MS
-				: false;
-		},
-	});
+	const { data: viva, isError } = useQuery(vivaQuery(id));
 	if (isError) {
 		return (
 			<p className="px-4 pt-24 text-center text-sm text-muted-foreground">
