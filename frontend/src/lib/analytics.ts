@@ -24,6 +24,7 @@ export function initAnalytics() {
 			maskTextSelector: '[data-private]',
 		},
 	});
+	posthog.register({ app: 'web' });
 }
 
 export function identify(userId: string) {

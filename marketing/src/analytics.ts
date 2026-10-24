@@ -9,6 +9,7 @@ if (key) {
 		defaults: '2026-08-30',
 		person_profiles: 'identified_only',
 	});
+	posthog.register({ app: 'marketing' });
 
 	// Hands this visitor's anonymous id to the app, so the signup there joins
 	// the same person and the funnel runs from landing page to account.

@@ -12,5 +12,9 @@ export function track(
 	event: string,
 	properties?: Record<string, string | number | boolean>,
 ) {
-	posthog?.capture({ distinctId: userId, event, properties });
+	posthog?.capture({
+		distinctId: userId,
+		event,
+		properties: { app: 'server', ...properties },
+	});
 }
