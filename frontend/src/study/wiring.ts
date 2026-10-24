@@ -25,6 +25,10 @@ export function useAttempts(): QuizAttempt[] {
 	return useMemo(() => usableAttempts(course, raw), [course, raw]);
 }
 
+export function attemptsFor(course: Course): QuizAttempt[] {
+	return usableAttempts(course, attemptsStore.getState().attempts);
+}
+
 export function saveAttempt(course: Course, attempt: QuizAttempt) {
 	attemptsStore.getState().save(course, attempt);
 }

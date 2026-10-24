@@ -1,6 +1,7 @@
 import { AppShell } from '@/app/AppShell';
 import { CourseGate } from '@/app/CourseGate';
 import { RequireAuth } from '@/app/RequireAuth';
+import { followRoutes } from '@/app/wiring';
 import { PageContainer } from '@/components/PageContainer';
 import { AuthPage } from '@/pages/AuthPage';
 import { MaterialsPage } from '@/pages/MaterialsPage';
@@ -82,6 +83,7 @@ const router = createBrowserRouter([
 		],
 	},
 ]);
+followRoutes(router);
 
 export function App() {
 	return <RouterProvider router={router} />;

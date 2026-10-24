@@ -141,36 +141,33 @@ function SubmitDialog({
 	onCancel,
 	onConfirm,
 }: { unanswered: number; onCancel: () => void; onConfirm: () => void }) {
-	useEffect(() => {
-		const onKey = (event: KeyboardEvent) =>
-			event.key === 'Escape' && onCancel();
-		window.addEventListener('keydown', onKey);
-		return () => window.removeEventListener('keydown', onKey);
-	}, [onCancel]);
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1d1a18]/30 p-4">
-			<dialog
-				open
-				aria-modal="true"
-				aria-labelledby="submit-title"
-				className="relative m-0 w-full max-w-sm rounded-2xl bg-card p-6 text-foreground shadow-raised"
-			>
-				<h2 id="submit-title" className="font-display text-[20px] leading-7">
-					Submit exam?
-				</h2>
-				<p className="mt-2 text-sm text-muted-foreground">
-					{unanswered === 0
-						? 'All questions are answered. You will not be able to change your answers after submitting.'
-						: `${unanswered} ${unanswered === 1 ? 'question is' : 'questions are'} unanswered and will score zero.`}
-				</p>
-				<div className="mt-6 flex justify-end gap-2">
-					<Button variant="pill" onClick={onCancel} autoFocus>
-						Keep working
-					</Button>
-					<Button onClick={onConfirm}>Submit exam</Button>
-				</div>
-			</dialog>
-		</div>
+		<dialog
+			ref={(dialog) => {
+				if (dialog && !dialog.open) dialog.showModal();
+			}}
+			onCancel={(event) => {
+				event.preventDefault();
+				onCancel();
+			}}
+			aria-labelledby="submit-title"
+			className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-card p-6 text-foreground shadow-raised backdrop:bg-[#1d1a18]/30"
+		>
+			<h2 id="submit-title" className="font-display text-[20px] leading-7">
+				Submit exam?
+			</h2>
+			<p className="mt-2 text-sm text-muted-foreground">
+				{unanswered === 0
+					? 'All questions are answered. You will not be able to change your answers after submitting.'
+					: `${unanswered} ${unanswered === 1 ? 'question is' : 'questions are'} unanswered and will score zero.`}
+			</p>
+			<div className="mt-6 flex justify-end gap-2">
+				<Button variant="pill" onClick={onCancel} autoFocus>
+					Keep working
+				</Button>
+				<Button onClick={onConfirm}>Submit exam</Button>
+			</div>
+		</dialog>
 	);
 }
 

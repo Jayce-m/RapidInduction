@@ -23,16 +23,15 @@ import {
 	PanelLeft,
 	Settings,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
 	Link,
 	Outlet,
 	ScrollRestoration,
 	useLocation,
 	useMatches,
-	useSearchParams,
 } from 'react-router-dom';
-import { trackForRoute } from './track';
+import { routeInfo, trackForRoute } from './track';
 import { useShell } from './wiring';
 
 const TRACKS: ExamTrack[] = ['primary', 'final'];
@@ -40,19 +39,8 @@ const TRACKS: ExamTrack[] = ['primary', 'final'];
 function useActiveTrack(): ExamTrack {
 	const course = useCourse();
 	const attempts = useAttempts();
-	const { pathname } = useLocation();
-	const [search] = useSearchParams();
-	const matches = useMatches();
-	const routeTrack = trackForRoute(course, attempts, {
-		pathname,
-		params: matches[matches.length - 1]?.params ?? {},
-		trackParam: search.get('track'),
-	});
+	const routeTrack = trackForRoute(course, attempts, routeInfo(useLocation(), useMatches()));
 	const lastTrack = useShell((state) => state.lastTrack);
-	const rememberTrack = useShell((state) => state.rememberTrack);
-	useEffect(() => {
-		if (routeTrack) rememberTrack(routeTrack);
-	}, [routeTrack, rememberTrack]);
 	return routeTrack ?? lastTrack;
 }
 

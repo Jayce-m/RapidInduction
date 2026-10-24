@@ -7,6 +7,17 @@ export interface RouteInfo {
 	trackParam: string | null;
 }
 
+export function routeInfo(
+	location: { pathname: string; search: string },
+	matches: readonly { params: Record<string, string | undefined> }[],
+): RouteInfo {
+	return {
+		pathname: location.pathname,
+		params: matches[matches.length - 1]?.params ?? {},
+		trackParam: new URLSearchParams(location.search).get('track'),
+	};
+}
+
 // The track is derived from whatever the current route shows, so deep links and
 // the back button never disagree with the switcher.
 export function trackForRoute(
